@@ -1,0 +1,120 @@
+import json
+from typing import AsyncIterator
+
+from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
+
+from app.models.schemas import ChatRequest, ChatResponse
+from app.services.chat_service import ChatService
+
+router = APIRouter()
+
+
+def _build_chat_service(request: Request) -> ChatService:
+    return ChatService(
+        settings=request.app.state.settings,
+        postgres_pool=request.app.state.postgres.pool,
+        redis_manager=request.app.state.redis,
+        provider_registry=request.app.state.providers,
+    )
+
+
+def _resolve_rate_limit_key(request: Request, payload: ChatRequest) -> str:
+    if payload.session_id:
+        return f"session:{payload.session_id}"
+    client_host = request.client.host if request.client else "unknown"
+    return f"ip:{client_host}"
+
+
+def _raise_chat_http_error(exc: Exception) -> None:
+    message = str(exc)
+    status_code = status.HTTP_400_BAD_REQUEST
+
+    if "rate limit" in message.lower():
+        status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    elif "required" in message.lower() or "unsupported" in message.lower():
+        status_code = status.HTTP_400_BAD_REQUEST
+    elif "unreachable" in message.lower():
+        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    raise HTTPException(status_code=status_code, detail=message) from exc
+
+
+def _sse(event: str, data: dict) -> str:
+    return f"event: {event}\ndata: {json.dumps(data)}\n\n"
+
+
+@router.post("", response_model=ChatResponse)
+async def chat(request: Request, payload: ChatRequest) -> ChatResponse:
+    service = _build_chat_service(request)
+    rate_limit_key = _resolve_rate_limit_key(request, payload)
+
+    try:
+        result = await service.prepare_chat(payload, rate_limit_key)
+    except Exception as exc:
+        _raise_chat_http_error(exc)
+
+    return ChatResponse(
+        answer=result.answer,
+        citations=result.citations,
+        provider=result.provider,
+        model=result.model,
+        embedding_provider=result.embedding_provider,
+        embedding_model=result.embedding_model,
+        used_fallback=result.used_fallback,
+    )
+
+
+@router.post("/stream")
+async def chat_stream(request: Request, payload: ChatRequest) -> StreamingResponse:
+    service = _build_chat_service(request)
+    rate_limit_key = _resolve_rate_limit_key(request, payload)
+
+    try:
+        stream_state = await service.start_stream(payload, rate_limit_key)
+    except Exception as exc:
+        _raise_chat_http_error(exc)
+
+    async def event_generator() -> AsyncIterator[str]:
+        yield _sse(
+            "metadata",
+            {
+                "provider": stream_state.provider,
+                "model": stream_state.model,
+                "embedding_provider": stream_state.embedding_provider,
+                "embedding_model": stream_state.embedding_model,
+                "used_fallback": stream_state.used_fallback,
+            },
+        )
+
+        if stream_state.used_fallback:
+            yield _sse("chunk", {"delta": stream_state.fallback_text})
+            yield _sse(
+                "done",
+                {
+                    "answer": stream_state.fallback_text,
+                    "citations": [],
+                    "used_fallback": True,
+                },
+            )
+            return
+
+        answer_parts: list[str] = []
+        async for delta in stream_state.stream:
+            if not delta:
+                continue
+            answer_parts.append(delta)
+            yield _sse("chunk", {"delta": delta})
+
+        final_text = "".join(answer_parts)
+        await service.finalize_stream(stream_state, final_text)
+        yield _sse(
+            "done",
+            {
+                "answer": final_text,
+                "citations": [citation.model_dump(mode="json") for citation in stream_state.citations],
+                "used_fallback": False,
+            },
+        )
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")

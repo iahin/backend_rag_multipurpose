@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -5,6 +6,7 @@ from fastapi import FastAPI
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
+from app.db.qdrant import QdrantManager
 from app.db.postgres import PostgresManager
 from app.db.redis import RedisManager
 from app.providers.registry import ProviderRegistry
@@ -19,17 +21,20 @@ async def lifespan(app: FastAPI):
 
     postgres = PostgresManager(settings)
     redis = RedisManager(settings)
+    qdrant = QdrantManager(settings)
     providers = ProviderRegistry.from_settings(settings)
     auth_service = AuthService(settings, postgres.pool)
 
     app.state.settings = settings
     app.state.postgres = postgres
     app.state.redis = redis
+    app.state.qdrant = qdrant
     app.state.providers = providers
     app.state.auth_service = auth_service
 
     await postgres.connect()
     await redis.connect()
+    await _wait_for_qdrant(qdrant, settings.default_embedding_spec.dimension)
     await auth_service.ensure_bootstrap_admin()
 
     logger.info("application_startup_complete")
@@ -37,9 +42,26 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        await qdrant.close()
         await redis.close()
         await postgres.close()
         logger.info("application_shutdown_complete")
+
+
+async def _wait_for_qdrant(qdrant: QdrantManager, dimension: int, retries: int = 30) -> None:
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            await qdrant.ensure_collection(dimension)
+            return
+        except Exception as exc:  # pragma: no cover - startup retry path
+            last_error = exc
+            if attempt == retries:
+                break
+            await asyncio.sleep(min(2 * attempt, 10))
+
+    if last_error is not None:
+        raise RuntimeError(f"Qdrant is not ready: {last_error}") from last_error
 
 
 def create_app() -> FastAPI:

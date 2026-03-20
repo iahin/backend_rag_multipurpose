@@ -102,40 +102,57 @@ class EmbeddingService:
             "gemini": GeminiEmbeddingProvider(settings),
             "ollama": OllamaEmbeddingProvider(settings),
         }
+        if self._settings.default_embedding_profile not in self._settings.embedding_profiles:
+            raise ValueError(
+                f"Unknown default embedding profile '{self._settings.default_embedding_profile}'"
+            )
 
     def resolve_selection(
         self,
+        profile_name: str | None,
         provider: str | None,
         model: str | None,
     ) -> EmbeddingSelection:
-        resolved_provider = provider or self._settings.default_embedding_provider
-        resolved_model = model or self._settings.default_embedding_model
+        if profile_name is not None:
+            selected_profile_name = profile_name
+            profile = self._settings.embedding_profiles.get(selected_profile_name)
+            if profile is None:
+                raise ValueError(f"Unknown embedding profile '{selected_profile_name}'")
+            if provider is not None and profile.provider != provider:
+                raise ValueError(
+                    f"embedding_profile '{selected_profile_name}' does not match embedding_provider '{provider}'"
+                )
+            if model is not None and profile.model != model:
+                raise ValueError(
+                    f"embedding_profile '{selected_profile_name}' does not match embedding_model '{model}'"
+                )
+        elif provider is not None or model is not None:
+            selected_profile_name = self._find_profile_name(provider, model)
+            profile = self._settings.embedding_profiles.get(selected_profile_name)
+            if profile is None:
+                raise ValueError(f"Unknown embedding profile '{selected_profile_name}'")
+        else:
+            selected_profile_name = self._settings.default_embedding_profile
+            profile = self._settings.embedding_profiles.get(selected_profile_name)
 
-        if resolved_provider not in self._providers:
-            raise ValueError(f"Unsupported embedding provider '{resolved_provider}'")
-
-        if (
-            resolved_provider != self._settings.default_embedding_provider
-            or resolved_model != self._settings.default_embedding_model
-        ):
-            raise ValueError(
-                "Indexed embeddings use the canonical configured provider/model only. "
-                "Request-level embedding overrides must match the configured index pair."
-            )
+        if profile.provider not in self._providers:
+            raise ValueError(f"Unsupported embedding provider '{profile.provider}'")
 
         return EmbeddingSelection(
-            provider=resolved_provider,
-            model=resolved_model,
-            dimension=self._settings.canonical_embedding_dimension,
+            profile_name=selected_profile_name,
+            provider=profile.provider,
+            model=profile.model,
+            dimension=profile.dimension,
         )
 
     async def embed_texts(
         self,
         texts: list[str],
+        profile_name: str | None = None,
         provider: str | None = None,
         model: str | None = None,
     ) -> tuple[EmbeddingSelection, list[list[float]]]:
-        selection = self.resolve_selection(provider, model)
+        selection = self.resolve_selection(profile_name, provider, model)
         if not texts:
             return selection, []
 
@@ -165,9 +182,33 @@ class EmbeddingService:
             await self._cache.set_json(cache_key, embeddings)
 
         logger.info(
-            "embeddings_generated provider=%s model=%s count=%s",
+            "embeddings_generated profile=%s provider=%s model=%s count=%s",
+            selection.profile_name,
             selection.provider,
             selection.model,
             len(embeddings),
         )
         return selection, embeddings
+
+    def _find_profile_name(self, provider: str | None, model: str | None) -> str:
+        if provider is None and model is None:
+            return self._settings.default_embedding_profile
+
+        matches: list[str] = []
+        for profile_name, profile in self._settings.embedding_profiles.items():
+            if provider is not None and profile.provider != provider:
+                continue
+            if model is not None and profile.model != model:
+                continue
+            matches.append(profile_name)
+
+        if not matches:
+            raise ValueError(
+                "No configured embedding profile matches the requested provider/model pair"
+            )
+        if len(matches) > 1:
+            raise ValueError(
+                "Multiple embedding profiles match the requested provider/model pair. "
+                "Specify embedding_profile explicitly."
+            )
+        return matches[0]

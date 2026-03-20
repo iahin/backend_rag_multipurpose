@@ -5,6 +5,8 @@ Repository-level documentation now lives at:
 - `README.md`
 - `docs/architecture.md`
 - `docs/api.md`
+- `docs/feature-log.md`
+- `docs/development-log.md`
 - `docs/ingestion.md`
 - `docs/rag-pipeline.md`
 - `docs/providers-and-models.md`
@@ -21,12 +23,20 @@ copy backend\.env.example backend\.env
 docker compose -f backend/docker-compose.yml up --build -d
 ```
 
+The Compose app service reads `backend/.env`. The `.env.example` file is only the template you copy from.
+
+Embedding selection is profile-based and stored in Qdrant:
+
+- set `DEFAULT_EMBEDDING_PROFILE` to switch the active embedding profile
+- edit `EMBEDDING_PROFILES` if you want to add or override named provider/model/dimension combinations
+- when a new dimension is used, the app creates the matching Qdrant collection automatically
+
 Default Docker-exposed API port is `9010`.
 
 If host port `9010` is blocked, set:
 
 ```bash
-set HOST_APP_PORT=8010
+set HOST_PROXY_PORT=8010
 ```
 
 In the default setup, Ollama is not containerized. Run Ollama on the host machine.

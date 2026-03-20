@@ -1,6 +1,5 @@
-from psycopg_pool import AsyncConnectionPool
-
 from app.core.config import Settings
+from app.db.qdrant import QdrantManager
 from app.db.redis import RedisManager
 from app.db.repositories.retrieval import RetrievalRepository
 from app.models.schemas import EmbeddingSelection, RetrievedChunk
@@ -11,11 +10,11 @@ class RetrievalService:
     def __init__(
         self,
         settings: Settings,
-        postgres_pool: AsyncConnectionPool,
+        qdrant_manager: QdrantManager,
         redis_manager: RedisManager,
     ) -> None:
         self._settings = settings
-        self._repository = RetrievalRepository(postgres_pool)
+        self._repository = RetrievalRepository(qdrant_manager)
         self._cache = CacheService(
             redis_manager.client,
             ttl_seconds=settings.retrieval_cache_ttl_seconds,
@@ -49,6 +48,8 @@ class RetrievalService:
             similarity_threshold=self._settings.similarity_threshold,
             embedding_provider=selection.provider,
             embedding_model=selection.model,
+            embedding_profile=selection.profile_name,
+            embedding_dimension=selection.dimension,
         )
         if not results and query_text.strip():
             results = await self._repository.search_keyword_chunks(
@@ -56,6 +57,8 @@ class RetrievalService:
                 limit=top_k,
                 embedding_provider=selection.provider,
                 embedding_model=selection.model,
+                embedding_profile=selection.profile_name,
+                embedding_dimension=selection.dimension,
             )
         if not results:
             results = await self._repository.search_best_available_chunks(
@@ -63,6 +66,8 @@ class RetrievalService:
                 limit=top_k,
                 embedding_provider=selection.provider,
                 embedding_model=selection.model,
+                embedding_profile=selection.profile_name,
+                embedding_dimension=selection.dimension,
             )
         await self._cache.set_json(cache_key, [item.model_dump(mode="json") for item in results])
         return results

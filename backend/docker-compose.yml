@@ -1,17 +1,36 @@
 services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: rag_nginx
+    environment:
+      NGINX_UPSTREAM_HOST: app
+      NGINX_UPSTREAM_PORT: 8000
+    ports:
+      - "${HOST_PROXY_PORT:-9010}:80"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/nginx-health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: rag_app
     env_file:
-      - .env.example
+      - .env
     environment:
+      APP_PORT: 8000
       POSTGRES_DSN: postgresql://postgres:postgres@postgres:5432/ragdb
       REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
       OLLAMA_BASE_URL: http://host.docker.internal:11434
-    ports:
-      - "${HOST_APP_PORT:-9010}:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -26,7 +45,9 @@ services:
       - "host.docker.internal:host-gateway"
 
   postgres:
-    image: pgvector/pgvector:pg16
+    build:
+      context: .
+      dockerfile: postgres/Dockerfile
     container_name: rag_postgres
     environment:
       POSTGRES_DB: ragdb
@@ -36,7 +57,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./app/db/schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d ragdb"]
       interval: 5s
@@ -57,6 +77,15 @@ services:
       timeout: 3s
       retries: 10
 
+  qdrant:
+    image: qdrant/qdrant:v1.14.1
+    container_name: rag_qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
 volumes:
   postgres_data:
   redis_data:
+  qdrant_data:

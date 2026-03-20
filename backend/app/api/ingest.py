@@ -16,6 +16,7 @@ def _build_ingest_service(request: Request) -> IngestService:
     return IngestService(
         settings=request.app.state.settings,
         redis_manager=request.app.state.redis,
+        qdrant_manager=request.app.state.qdrant,
         postgres_pool=request.app.state.postgres.pool,
         provider_registry=request.app.state.providers,
     )
@@ -88,6 +89,7 @@ async def ingest_files(
     source_type: str | None = Form(default=None),
     tags: str | None = Form(default=None),
     metadata: str | None = Form(default=None),
+    embedding_profile: str | None = Form(default=None),
     embedding_provider: str | None = Form(default=None),
     embedding_model: str | None = Form(default=None),
 ) -> IngestFilesResponse:
@@ -117,6 +119,7 @@ async def ingest_files(
         source_type_override=normalized_source_type,
         tags=parsed_tags,
         shared_metadata=parsed_metadata,
+        embedding_profile=_normalize_optional_form_value(embedding_profile),
         embedding_provider=normalized_embedding_provider,
         embedding_model=normalized_embedding_model,
     )

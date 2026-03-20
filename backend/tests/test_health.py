@@ -15,6 +15,11 @@ class StubRedis:
         return DependencyHealth(ok=True, detail="connected")
 
 
+class StubQdrant:
+    async def healthcheck(self) -> DependencyHealth:
+        return DependencyHealth(ok=True, detail="connected")
+
+
 class StubProviders:
     async def healthcheck_all(self) -> dict[str, ProviderHealth]:
         return {
@@ -50,10 +55,10 @@ class StubSettings:
 
     def phase_one_assumptions(self) -> dict:
         return {
-            "default_generation_provider": "openai",
-            "default_generation_model": "gpt-4.1-mini",
-            "default_embedding_provider": "openai",
-            "default_embedding_model": "text-embedding-3-small",
+            "default_generation_provider": "ollama",
+            "default_generation_model": "llama3.2",
+            "default_embedding_provider": "ollama",
+            "default_embedding_model": "rjmalagon/gte-qwen2-1.5b-instruct-embed-f16",
         }
 
 
@@ -62,6 +67,7 @@ def build_test_app() -> FastAPI:
     app.include_router(health_router)
     app.state.postgres = StubPostgres()
     app.state.redis = StubRedis()
+    app.state.qdrant = StubQdrant()
     app.state.providers = StubProviders()
     app.state.settings = StubSettings()
     return app
@@ -77,4 +83,5 @@ def test_health_endpoint_returns_ok() -> None:
     assert payload["status"] == "ok"
     assert payload["postgres"]["ok"] is True
     assert payload["redis"]["ok"] is True
+    assert payload["qdrant"]["ok"] is True
     assert payload["providers"]["ollama"]["detail"] == "reachable"

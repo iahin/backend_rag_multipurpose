@@ -1,7 +1,6 @@
-from psycopg_pool import AsyncConnectionPool
-
 from app.core.config import Settings
 from app.core.rate_limit import RateLimiter
+from app.db.qdrant import QdrantManager
 from app.db.redis import RedisManager
 from app.models.schemas import (
     ChatMessage,
@@ -21,14 +20,14 @@ class ChatService:
     def __init__(
         self,
         settings: Settings,
-        postgres_pool: AsyncConnectionPool,
+        qdrant_manager: QdrantManager,
         redis_manager: RedisManager,
         provider_registry: ProviderRegistry,
     ) -> None:
         self._settings = settings
         self._providers = provider_registry
         self._embedding_service = EmbeddingService(settings)
-        self._retrieval_service = RetrievalService(settings, postgres_pool, redis_manager)
+        self._retrieval_service = RetrievalService(settings, qdrant_manager, redis_manager)
         self._prompt_builder = PromptBuilder()
         self._session_service = SessionService(
             redis_client=redis_manager.client,
@@ -152,6 +151,7 @@ class ChatService:
         generation = self._resolve_generation_selection(payload.provider, payload.model)
         embedding_selection, query_embeddings = await self._embedding_service.embed_texts(
             texts=[payload.message],
+            profile_name=payload.embedding_profile,
             provider=payload.embedding_provider,
             model=payload.embedding_model,
         )

@@ -1,0 +1,19 @@
+{
+  "serviceName": "backend-rag-multipurpose",
+  "cluster": "backend-rag-cluster",
+  "taskDefinition": "backend-rag-multipurpose",
+  "desiredCount": 1,
+  "launchType": "FARGATE",
+  "enableExecuteCommand": true,
+  "deploymentConfiguration": {
+    "maximumPercent": 100,
+    "minimumHealthyPercent": 0
+  },
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "subnets": ["subnet-0f9cc29a5f7fb1e28"],
+      "securityGroups": ["sg-002711b306910e156"],
+      "assignPublicIp": "ENABLED"
+    }
+  }
+}

@@ -1,0 +1,326 @@
+# ECS Fargate deployment
+
+This repository now includes a pragmatic single-task ECS on Fargate deployment path.
+
+What it deploys in one ECS task:
+
+- `nginx` reverse proxy on port `80`
+- FastAPI app on port `8000`
+- PostgreSQL for document/auth metadata on port `5432`
+- Qdrant for chunk vectors and similarity search on port `6333`
+- Redis on port `6379`
+
+This keeps the current local Compose architecture inside one ECS task.
+
+Current ECS template defaults:
+
+- generation provider: `openai`
+- generation model: `gpt-4.1-mini`
+- embedding profile: `openai_small_1536`
+- embedding profiles are supplied via `EMBEDDING_PROFILES`
+
+The `nginx` image uses one shared config template for both local Docker and ECS.
+
+- local Docker sets `NGINX_UPSTREAM_HOST=app`
+- ECS/Fargate sets `NGINX_UPSTREAM_HOST=127.0.0.1`
+
+## Important constraint
+
+This is a single-task Fargate design with stateful sidecars.
+
+- It is not highly available.
+- PostgreSQL, Qdrant, and Redis use Fargate ephemeral task storage.
+- Restarting or replacing the task can lose PostgreSQL, Qdrant, and Redis data.
+- This is acceptable only for demos, dev, or disposable environments.
+- For real production, move PostgreSQL to RDS and use a managed or persistent Qdrant/Redis setup.
+- An AWS Application Load Balancer is still optional. `nginx` can remain the public entry point inside the task.
+
+## Images to build
+
+Build from the repository root:
+
+```powershell
+docker build -f backend/Dockerfile -t rag-backend:latest backend
+docker build -f backend/nginx/Dockerfile -t rag-nginx:latest backend/nginx
+docker build -f backend/postgres/Dockerfile -t rag-postgres:latest backend
+```
+
+Verify the local images exist before tagging:
+
+```powershell
+docker images
+docker images | findstr rag-
+```
+
+If you do not see `rag-backend`, `rag-nginx`, and `rag-postgres`, build them first with the commands above.
+
+Push the app images to ECR:
+
+```powershell
+aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com
+
+aws ecr create-repository --repository-name snaic_website/rag-backend
+aws ecr create-repository --repository-name snaic_website/rag-nginx
+aws ecr create-repository --repository-name snaic_website/rag-postgres
+
+docker tag rag-backend:latest 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-backend:latest
+docker tag rag-nginx:latest 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-nginx:latest
+docker tag rag-postgres:latest 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-postgres:latest
+
+docker push 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-backend:latest
+docker push 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-nginx:latest
+docker push 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-postgres:latest
+```
+
+If Docker returns `no basic auth credentials`, run the `aws ecr get-login-password ... | docker login ...` command again and retry the push.
+
+Redis can stay on the public `redis:7.4-alpine` image.
+
+## AWS resources
+
+Create:
+
+1. One ECS cluster for Fargate tasks.
+2. One or more public or private subnets for the Fargate service.
+3. One security group allowing inbound `80/tcp` from the internet or from your ALB.
+4. One CloudWatch log group: `/ecs/backend-rag-multipurpose`.
+5. One IAM task execution role: `ecsTaskExecutionRole`.
+6. One IAM task role: `ecsTaskRole`.
+7. SSM Parameter Store entries for secrets used by the app.
+   - `/backend-rag/OPENAI_API_KEY`
+   - `/backend-rag/AUTH_JWT_SECRET`
+   - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_USERNAME`
+   - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD`
+
+## CloudWatch setup
+
+Create the log group used by the ECS task:
+
+1. Open `CloudWatch` in the AWS Console.
+2. Go to `Log groups`.
+3. Click `Create log group`.
+4. Name it:
+   - `/ecs/backend-rag-multipurpose`
+5. Save it.
+
+This is where logs from these containers will appear:
+
+- `nginx`
+- `app`
+- `postgres`
+- `redis`
+
+## IAM setup
+
+You need two IAM roles for ECS tasks:
+
+- `ecsTaskExecutionRole`
+- `ecsTaskRole`
+
+Even if you deploy with the AWS root account, these roles still must exist.
+
+### Trust relationship for both roles
+
+Both roles must trust `ecs-tasks.amazonaws.com`.
+
+Use this trust policy:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+### Create `ecsTaskExecutionRole`
+
+In the AWS Console:
+
+1. Open `IAM`.
+2. Go to `Roles`.
+3. Click `Create role`.
+4. Trusted entity type: `AWS service`.
+5. Use case: `Elastic Container Service Task`.
+6. Attach the managed policy:
+   - `AmazonECSTaskExecutionRolePolicy`
+7. Name the role:
+   - `ecsTaskExecutionRole`
+8. Create the role.
+
+This role lets ECS:
+
+- pull images from ECR
+- write logs to CloudWatch
+- read secrets from SSM
+
+If your SSM SecureString values use a customer-managed KMS key, also allow:
+
+- `kms:Decrypt`
+
+### Create `ecsTaskRole`
+
+In the AWS Console:
+
+1. Open `IAM`.
+2. Go to `Roles`.
+3. Click `Create role`.
+4. Trusted entity type: `AWS service`.
+5. Use case: `Elastic Container Service Task`.
+6. Do not add broad permissions unless the app actually needs AWS API access.
+7. Name the role:
+   - `ecsTaskRole`
+8. Create the role.
+
+For the current repository, this role can start minimal if the app itself is not calling AWS APIs directly.
+
+## SSM setup
+
+The ECS task definition reads secrets from AWS Systems Manager Parameter Store.
+
+Create these parameters as `SecureString`:
+
+- `/backend-rag/OPENAI_API_KEY`
+- `/backend-rag/AUTH_JWT_SECRET`
+- `/backend-rag/AUTH_BOOTSTRAP_ADMIN_USERNAME`
+- `/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD`
+
+### Create the parameters in the AWS Console
+
+1. Open `Systems Manager`.
+2. Go to `Parameter Store`.
+3. Click `Create parameter`.
+4. For each parameter:
+   - set `Name` to the exact value above
+   - set `Tier` to `Standard`
+   - set `Type` to `SecureString`
+   - paste the real secret value
+5. Save it.
+
+Suggested values:
+
+- `/backend-rag/OPENAI_API_KEY`: your OpenAI API key
+- `/backend-rag/AUTH_JWT_SECRET`: a long random secret
+- `/backend-rag/AUTH_BOOTSTRAP_ADMIN_USERNAME`: your admin username
+- `/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD`: your admin password
+
+If you prefer Gemini instead of OpenAI:
+
+- create `/backend-rag/GEMINI_API_KEY`
+- replace the OpenAI env vars and secret reference in the task definition
+
+If you prefer Ollama instead of OpenAI in ECS:
+
+- update the app container environment in `deploy/ecs/task-definition.json`
+- set `OLLAMA_ENABLED=true`
+- set the OpenAI defaults to `false`
+- provide a reachable `OLLAMA_BASE_URL`
+
+The current ECS task template is OpenAI-based by default.
+
+### Permissions note
+
+Your `ecsTaskExecutionRole` must be able to read these parameters.
+
+At minimum it needs:
+
+- `ssm:GetParameters`
+
+If you use a customer-managed KMS key for `SecureString`, it also needs:
+
+- `kms:Decrypt`
+
+## Task definition
+
+Template file:
+
+- `deploy/ecs/task-definition.json`
+
+Replace:
+
+- `<AWS_ACCOUNT_ID>`
+- `<AWS_REGION>`
+- `<CHANGE_ME_DB_PASSWORD>`
+
+Recommended production edits before registering:
+
+- Set `AUTH_REQUIRE_HTTPS=true` if TLS is terminated before traffic reaches `nginx`.
+- Set `DEFAULT_EMBEDDING_PROFILE` to the profile you actually want.
+- Update `EMBEDDING_PROFILES` when you add or change embedding models.
+- Keep the `nginx` env vars aligned with your task networking model.
+- Adjust task `cpu`, `memory`, and `ephemeralStorage` to your workload.
+
+Then register:
+
+```powershell
+aws ecs register-task-definition --cli-input-json file://deploy/ecs/task-definition.json
+```
+
+## Service definition
+
+Template file:
+
+- `deploy/ecs/service-definition.json`
+
+Replace:
+
+- subnet ids
+- security group id
+
+Then create the service:
+
+```powershell
+aws ecs create-service --cluster snaic_website_cluster --cli-input-json file://deploy/ecs/service-definition.json
+```
+
+## Traffic flow
+
+Requests hit:
+
+- `task ENI:80` or `ALB:80/443` -> `nginx` -> FastAPI app
+
+Container-local dependencies:
+
+- app -> `127.0.0.1:5432` PostgreSQL
+- app -> `127.0.0.1:6333` Qdrant
+- app -> `127.0.0.1:6379` Redis
+
+Simple diagram:
+
+```text
+client
+  |
+  +--> ALB:80/443 (optional)
+  |       |
+  |       v
+  +----> task ENI:80
+           |
+           v
+         nginx
+           |
+           v
+      FastAPI app:8000
+         |        |        |
+         |        |        +--> 127.0.0.1:6379   Redis
+         |        |
+         |        +---------> 127.0.0.1:6333   Qdrant
+         |
+         +------------------> 127.0.0.1:5432   PostgreSQL
+```
+
+## Operational notes
+
+- This design preserves the all-in-one task shape, but stateful containers on Fargate remain disposable.
+- Ollama is disabled in the ECS template because local models are not realistic in this deployment shape.
+- If you want Fargate to be production-ready, the next step is: app + nginx on Fargate, PostgreSQL on RDS, Redis on ElastiCache.
+
+Related troubleshooting:
+
+- `docs/troubleshooting-log.md`

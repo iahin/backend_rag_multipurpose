@@ -5,9 +5,9 @@
 1. Accept user query on `/chat` or `/chat/stream`
 2. Rate-limit the request in Redis
 3. Resolve generation provider/model from the request or config defaults
-4. Resolve canonical embedding provider/model from the request or config defaults
-5. Embed the query with the canonical embedding provider
-6. Retrieve top matching chunks from pgvector
+4. Resolve the embedding profile from the request or config defaults
+5. Embed the query with the selected provider/model
+6. Retrieve top matching chunks from the Qdrant collection for that embedding dimension
 7. Filter vector results using `SIMILARITY_THRESHOLD`
 8. If vector retrieval returns nothing, run a lexical fallback against stored titles and chunk content
 9. If lexical retrieval still returns nothing, use the best available semantic matches without applying the threshold
@@ -19,11 +19,9 @@
 
 ## Retrieval query
 
-The implementation uses cosine similarity in PostgreSQL with pgvector:
+The implementation uses cosine similarity in Qdrant:
 
-```sql
-1 - (dc.embedding <=> %(embedding)s::vector)
-```
+Results are filtered by the embedding profile and searched with cosine similarity.
 
 Results are filtered by:
 
@@ -42,7 +40,7 @@ The system prompt explicitly instructs the model to:
 
 ## Fallback behavior
 
-If vector retrieval returns no chunks above the threshold, the system tries a second-stage lexical lookup over `documents.title` and `document_chunks.content`. If that still returns nothing, it falls back to the best available semantic matches for the active embedding pair. Only if no chunks exist at all for that embedding pair does the system return:
+If vector retrieval returns no chunks above the threshold, the system tries a second-stage lexical lookup over the stored chunk payloads. If that still returns nothing, it falls back to the best available semantic matches for the active embedding profile. Only if no chunks exist at all for that profile does the system return:
 
 ```text
 I couldn't find that in the knowledge base.
@@ -74,7 +72,8 @@ Citations are built from retrieved chunks and include:
 
 Current default indexed embedding setup:
 
+- profile: `ollama_1536`
 - provider: `ollama`
-- model: `qwen3-embedding`
-- dimension: `4096`
+- model: `rjmalagon/gte-qwen2-1.5b-instruct-embed-f16`
+- dimension: `1536`
 - similarity threshold: `0.35`

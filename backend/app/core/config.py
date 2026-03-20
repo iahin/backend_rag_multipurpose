@@ -1,10 +1,18 @@
 from functools import lru_cache
+import json
 from typing import Literal
 
-from pydantic import Field
+from pydantic import BaseModel, Field
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ProviderName = Literal["openai", "gemini", "ollama"]
+
+
+class EmbeddingProfileSpec(BaseModel):
+    provider: ProviderName
+    model: str
+    dimension: int
 
 
 class Settings(BaseSettings):
@@ -29,6 +37,10 @@ class Settings(BaseSettings):
     redis_url: str = Field(default="redis://localhost:6379/0")
     redis_max_connections: int = Field(default=10)
 
+    qdrant_url: str = Field(default="http://localhost:6333")
+    qdrant_api_key: str | None = Field(default=None)
+    qdrant_collection_prefix: str = Field(default="rag_chunks")
+
     openai_enabled: bool = Field(default=False)
     openai_api_key: str | None = Field(default=None)
 
@@ -41,9 +53,8 @@ class Settings(BaseSettings):
 
     default_llm_provider: ProviderName = Field(default="ollama")
     default_llm_model: str = Field(default="llama3.2")
-    default_embedding_provider: ProviderName = Field(default="ollama")
-    default_embedding_model: str = Field(default="qwen3-embedding")
-    canonical_embedding_dimension: int = Field(default=4096)
+    default_embedding_profile: str = Field(default="")
+    embedding_profiles: dict[str, EmbeddingProfileSpec] = Field(default_factory=dict)
     chunk_size: int = Field(default=1000)
     chunk_overlap: int = Field(default=150)
     structured_rows_per_chunk: int = Field(default=10)
@@ -64,18 +75,64 @@ class Settings(BaseSettings):
     auth_bootstrap_admin_password: str = Field(default="change-me-immediately")
     auth_require_https: bool = Field(default=False)
 
-    def phase_one_assumptions(self) -> dict[str, str | bool]:
+    @field_validator("default_embedding_profile", mode="before")
+    @classmethod
+    def normalize_default_embedding_profile(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+        return value
+
+    @field_validator("embedding_profiles", mode="before")
+    @classmethod
+    def parse_embedding_profiles(cls, value: object) -> object:
+        if value in (None, ""):
+            return {}
+        if isinstance(value, str):
+            parsed = json.loads(value)
+            if not isinstance(parsed, dict):
+                raise ValueError("EMBEDDING_PROFILES must decode to an object")
+            return parsed
+        return value
+
+    @property
+    def default_embedding_spec(self) -> EmbeddingProfileSpec:
+        if not self.default_embedding_profile:
+            raise ValueError("DEFAULT_EMBEDDING_PROFILE is required")
+        profile = self.embedding_profiles.get(self.default_embedding_profile)
+        if profile is None:
+            raise ValueError(
+                f"Unknown default embedding profile '{self.default_embedding_profile}'"
+            )
+        return profile
+
+    @property
+    def default_embedding_provider(self) -> ProviderName:
+        return self.default_embedding_spec.provider
+
+    @property
+    def default_embedding_model(self) -> str:
+        return self.default_embedding_spec.model
+
+    @property
+    def canonical_embedding_dimension(self) -> int:
+        return self.default_embedding_spec.dimension
+
+    def phase_one_assumptions(self) -> dict[str, object]:
         return {
             "default_generation_provider": self.default_llm_provider,
             "default_generation_model": self.default_llm_model,
+            "default_embedding_profile": self.default_embedding_profile,
             "default_embedding_provider": self.default_embedding_provider,
             "default_embedding_model": self.default_embedding_model,
             "embedding_dimension_strategy": (
-                "Option A: one canonical embedding provider/model per deployed "
-                "index. Request-level embedding overrides are only valid when "
-                "they match the canonical configured index pair and dimension."
+                "Named embedding profiles resolve to one canonical provider/model "
+                "pair each. Request-level overrides are only valid when they map "
+                "to a configured profile whose dimension matches the deployed index."
             ),
             "canonical_embedding_dimension": self.canonical_embedding_dimension,
+            "configured_embedding_profiles": {
+                name: profile.model_dump() for name, profile in self.embedding_profiles.items()
+            },
             "similarity_threshold": self.similarity_threshold,
             "redis_session_storage_enabled_by_default": self.session_storage_enabled,
             "authentication_enabled_by_default": self.auth_enabled,

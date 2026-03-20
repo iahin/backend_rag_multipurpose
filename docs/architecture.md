@@ -6,7 +6,7 @@ The project is a backend-only RAG chatbot service with these runtime dependencie
 
 - FastAPI application layer
 - PostgreSQL as the primary data store
-- pgvector for embedding storage and similarity search
+- Qdrant for embedding storage and similarity search
 - Redis for rate limiting, caching, and optional session state
 - Provider adapters for OpenAI, Gemini, and Ollama
 - JWT bearer authentication and hashed API keys
@@ -17,10 +17,10 @@ The project is a backend-only RAG chatbot service with these runtime dependencie
 2. Protected routes require a bearer token or `X-API-Key`.
 3. Inputs are normalized into a shared internal document model.
 4. Text is chunked.
-5. Chunks are embedded using the canonical configured embedding provider/model.
-6. Documents and chunks are stored in PostgreSQL.
-7. A chat request embeds the user query with the same canonical embedding pair.
-8. pgvector retrieves top matching chunks above the configured similarity threshold.
+5. Chunks are embedded using the active embedding profile.
+6. Documents are stored in PostgreSQL and chunk vectors are stored in Qdrant.
+7. A chat request embeds the user query with the same active profile or an explicitly requested profile.
+8. Qdrant retrieves top matching chunks from the collection for that embedding dimension.
 9. A grounded prompt is built from retrieved context.
 10. The selected generation provider produces either a full answer or a streaming answer.
 
@@ -53,7 +53,10 @@ Primary tables:
 - `app_users`
 - `api_keys`
 - `documents`
-- `document_chunks`
+
+Primary vector store:
+
+- Qdrant collections keyed by embedding dimension
 
 Important fields:
 
@@ -67,9 +70,7 @@ Important fields:
 - `documents.metadata`
 - `documents.original_filename`
 - `documents.mime_type`
-- `document_chunks.content`
-- `document_chunks.metadata`
-- `document_chunks.embedding`
+- Qdrant point payloads store chunk content, metadata, and embedding profile details
 
 ## Authentication model
 
@@ -102,13 +103,15 @@ The application signs tokens and hashes credentials, but HTTP encryption itself 
 
 ## Current architectural limitations
 
-- One canonical embedding provider/model is enforced for indexed data.
-- Request payloads expose `embedding_provider` and `embedding_model`, but they must match the canonical configured pair in this MVP.
+- Embedding profiles are configured in `.env` and can be switched without code changes.
+- Each embedding dimension maps to its own Qdrant collection, created automatically on first use.
+- Request payloads expose `embedding_profile`, `embedding_provider`, and `embedding_model` for explicit selection.
 - Provider streaming is implemented, but integration tests against live providers are not included.
 - TLS termination is not implemented in the app itself.
 
-Current repository default canonical embedding pair:
+Current repository default embedding profile:
 
+- profile: `ollama_1536`
 - provider: `ollama`
-- model: `qwen3-embedding`
-- dimension: `4096`
+- model: `rjmalagon/gte-qwen2-1.5b-instruct-embed-f16`
+- dimension: `1536`

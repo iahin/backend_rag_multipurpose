@@ -1,15 +1,15 @@
+from __future__ import annotations
+
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from psycopg.rows import dict_row
-from psycopg.types.json import Jsonb
-from psycopg_pool import AsyncConnectionPool
-
+from app.db.qdrant import QdrantManager
 from app.models.schemas import ChunkRecord, ChunkUpsert
 
 
 class ChunkRepository:
-    def __init__(self, pool: AsyncConnectionPool) -> None:
-        self._pool = pool
+    def __init__(self, qdrant: QdrantManager) -> None:
+        self._qdrant = qdrant
 
     async def bulk_create(
         self,
@@ -17,91 +17,97 @@ class ChunkRepository:
         chunks: list[ChunkUpsert],
         embedding_provider: str,
         embedding_model: str,
+        embedding_profile: str,
+        embedding_dimension: int,
     ) -> list[ChunkRecord]:
         if not chunks:
             return []
 
-        query = """
-            INSERT INTO document_chunks (
-                id,
-                document_id,
-                chunk_index,
-                content,
-                metadata,
-                embedding_provider,
-                embedding_model,
-                embedding
-            )
-            VALUES (
-                %(id)s,
-                %(document_id)s,
-                %(chunk_index)s,
-                %(content)s,
-                %(metadata)s,
-                %(embedding_provider)s,
-                %(embedding_model)s,
-                %(embedding)s::vector
-            )
-            RETURNING
-                id,
-                document_id,
-                chunk_index,
-                content,
-                metadata,
-                embedding_provider,
-                embedding_model,
-                created_at
-        """
+        collection_name = await self._qdrant.ensure_collection(embedding_dimension)
+        created_at = datetime.now(timezone.utc)
+        from qdrant_client.http import models
 
-        payload = [
-            {
-                "id": uuid4(),
-                "document_id": document_id,
+        points: list[models.PointStruct] = []
+        records: list[ChunkRecord] = []
+        for chunk in chunks:
+            point_id = str(uuid4())
+            title = str(chunk.metadata.get("title", ""))
+            url = chunk.metadata.get("url")
+            source_type = str(chunk.metadata.get("source_type", "text"))
+            payload = {
+                "document_id": str(document_id),
                 "chunk_index": chunk.chunk_index,
+                "title": title,
+                "url": url,
+                "source_type": source_type,
                 "content": chunk.content,
-                "metadata": Jsonb(chunk.metadata),
+                "metadata": chunk.metadata,
                 "embedding_provider": embedding_provider,
                 "embedding_model": embedding_model,
-                "embedding": self._to_pgvector_literal(chunk.embedding),
+                "embedding_profile": embedding_profile,
+                "created_at": created_at.isoformat(),
             }
-            for chunk in chunks
-        ]
+            points.append(
+                models.PointStruct(
+                    id=point_id,
+                    vector=chunk.embedding,
+                    payload=payload,
+                )
+            )
+            records.append(
+                ChunkRecord(
+                    id=UUID(point_id),
+                    document_id=document_id,
+                    chunk_index=chunk.chunk_index,
+                    content=chunk.content,
+                    metadata=chunk.metadata,
+                    embedding_provider=embedding_provider,
+                    embedding_model=embedding_model,
+                    created_at=created_at,
+                )
+            )
 
-        inserted: list[dict] = []
+        await self._qdrant.client.upsert(
+            collection_name=collection_name,
+            points=points,
+        )
+        return records
 
-        async with self._pool.connection() as connection:
-            async with connection.cursor(row_factory=dict_row) as cursor:
-                for item in payload:
-                    await cursor.execute(query, item)
-                    row = await cursor.fetchone()
-                    if row is not None:
-                        inserted.append(row)
-            await connection.commit()
+    async def list_for_document(self, document_id: UUID, embedding_dimension: int) -> list[ChunkRecord]:
+        collection_name = await self._qdrant.ensure_collection(embedding_dimension)
+        from qdrant_client.http import models
 
-        return [ChunkRecord.model_validate(row) for row in inserted]
+        query_filter = models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="document_id",
+                    match=models.MatchValue(value=str(document_id)),
+                )
+            ]
+        )
 
-    def _to_pgvector_literal(self, embedding: list[float]) -> str:
-        return "[" + ",".join(str(value) for value in embedding) + "]"
+        points, _ = await self._qdrant.client.scroll(
+            collection_name=collection_name,
+            scroll_filter=query_filter,
+            with_payload=True,
+            with_vectors=False,
+            limit=1000,
+        )
 
-    async def list_for_document(self, document_id: UUID) -> list[ChunkRecord]:
-        query = """
-            SELECT
-                id,
-                document_id,
-                chunk_index,
-                content,
-                metadata,
-                embedding_provider,
-                embedding_model,
-                created_at
-            FROM document_chunks
-            WHERE document_id = %(document_id)s
-            ORDER BY chunk_index ASC
-        """
+        records: list[ChunkRecord] = []
+        for point in points:
+            payload = point.payload or {}
+            records.append(
+                ChunkRecord(
+                    id=UUID(str(point.id)),
+                    document_id=UUID(str(payload["document_id"])),
+                    chunk_index=int(payload["chunk_index"]),
+                    content=str(payload["content"]),
+                    metadata=dict(payload.get("metadata", {})),
+                    embedding_provider=str(payload["embedding_provider"]),
+                    embedding_model=str(payload["embedding_model"]),
+                    created_at=datetime.fromisoformat(str(payload["created_at"])),
+                )
+            )
 
-        async with self._pool.connection() as connection:
-            async with connection.cursor(row_factory=dict_row) as cursor:
-                await cursor.execute(query, {"document_id": document_id})
-                rows = await cursor.fetchall()
-
-        return [ChunkRecord.model_validate(row) for row in rows]
+        return records

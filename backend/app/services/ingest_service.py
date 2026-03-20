@@ -5,6 +5,7 @@ from psycopg_pool import AsyncConnectionPool
 
 from app.core.config import Settings
 from app.core.logging import get_logger
+from app.db.qdrant import QdrantManager
 from app.db.redis import RedisManager
 from app.db.repositories.chunks import ChunkRepository
 from app.db.repositories.documents import DocumentRepository
@@ -30,6 +31,7 @@ class IngestService:
         self,
         settings: Settings,
         redis_manager: RedisManager,
+        qdrant_manager: QdrantManager,
         postgres_pool: AsyncConnectionPool,
         provider_registry: ProviderRegistry,
     ) -> None:
@@ -38,7 +40,7 @@ class IngestService:
         self._postgres_pool = postgres_pool
         self._provider_registry = provider_registry
         self._document_repository = DocumentRepository(postgres_pool)
-        self._chunk_repository = ChunkRepository(postgres_pool)
+        self._chunk_repository = ChunkRepository(qdrant_manager)
         self._parser_factory = ParserFactory()
         self._chunking_service = ChunkingService(settings)
         self._embedding_service = EmbeddingService(
@@ -51,6 +53,7 @@ class IngestService:
 
     async def ingest_text_items(self, payload: IngestTextRequest) -> IngestTextResponse:
         selection = self._embedding_service.resolve_selection(
+            payload.embedding_profile,
             payload.embedding_provider,
             payload.embedding_model,
         )
@@ -76,6 +79,8 @@ class IngestService:
                 ),
                 embedding_provider=selection.provider,
                 embedding_model=selection.model,
+                embedding_profile=selection.profile_name,
+                embedding_dimension=selection.dimension,
             )
             results.extend(persisted["results"])
             documents_inserted += persisted["documents_inserted"]
@@ -95,10 +100,12 @@ class IngestService:
         source_type_override: str | None,
         tags: list[str],
         shared_metadata: dict,
+        embedding_profile: str | None,
         embedding_provider: str | None,
         embedding_model: str | None,
     ) -> IngestFilesResponse:
         selection = self._embedding_service.resolve_selection(
+            embedding_profile,
             embedding_provider,
             embedding_model,
         )
@@ -128,6 +135,8 @@ class IngestService:
                     parsed_file=parsed_file,
                     embedding_provider=selection.provider,
                     embedding_model=selection.model,
+                    embedding_profile=selection.profile_name,
+                    embedding_dimension=selection.dimension,
                 )
                 results.extend(persisted["results"])
                 total_chunks_inserted += persisted["chunks_inserted"]
@@ -161,6 +170,8 @@ class IngestService:
         parsed_file: ParsedFile,
         embedding_provider: str,
         embedding_model: str,
+        embedding_profile: str,
+        embedding_dimension: int,
     ) -> dict:
         results: list[IngestFileResult] = []
         documents_inserted = 0
@@ -197,6 +208,8 @@ class IngestService:
                 chunks=chunk_upserts,
                 embedding_provider=embedding_provider,
                 embedding_model=embedding_model,
+                embedding_profile=embedding_profile,
+                embedding_dimension=embedding_dimension,
             )
 
             documents_inserted += 1

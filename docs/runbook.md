@@ -7,10 +7,12 @@ copy backend\.env.example backend\.env
 docker compose -f backend/docker-compose.yml up --build -d
 ```
 
+Local Docker reads values from `backend/.env`. `backend/.env.example` is only the template.
+
 If `9010` is blocked on the host:
 
 ```bash
-set HOST_APP_PORT=8010
+set HOST_PROXY_PORT=8010
 docker compose -f backend/docker-compose.yml up --build -d
 ```
 
@@ -26,6 +28,8 @@ docker compose -f backend/docker-compose.yml -f backend/docker-compose.ollama.ym
 ```bash
 curl http://localhost:9010/health
 ```
+
+This goes through `nginx` first and then reaches the app container.
 
 ## Get a bearer token
 
@@ -118,14 +122,14 @@ If you use Ollama, pull the generation and embedding models on the host machine:
 
 ```bash
 ollama pull llama3.2
-ollama pull qwen3-embedding
+ollama pull rjmalagon/gte-qwen2-1.5b-instruct-embed-f16
 ```
 
 If you use the Docker override instead:
 
 ```bash
 docker exec -it rag_ollama ollama pull llama3.2
-docker exec -it rag_ollama ollama pull qwen3-embedding
+docker exec -it rag_ollama ollama pull rjmalagon/gte-qwen2-1.5b-instruct-embed-f16
 ```
 
 ## Ingest sample content
@@ -163,6 +167,43 @@ If host-installed pytest plugins interfere with collection, disable plugin autol
 $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
 python -m pytest backend/tests
 ```
+
+## Run load tests
+
+Use the `k6` scripts under `loadtest/` against the local Nginx entrypoint:
+
+```bash
+k6 run loadtest/health.js
+k6 run loadtest/auth-token.js
+k6 run -e JWT_TOKEN=YOUR_TOKEN loadtest/chat.js
+```
+
+Without installing `k6` on the host:
+
+```bash
+docker compose -f backend/docker-compose.yml -f backend/docker-compose.loadtest.yml run --rm k6 run /scripts/health.js
+docker compose -f backend/docker-compose.yml -f backend/docker-compose.loadtest.yml run --rm k6 run /scripts/auth-token.js
+docker compose -f backend/docker-compose.yml -f backend/docker-compose.loadtest.yml run --rm -e JWT_TOKEN=YOUR_TOKEN k6 run /scripts/chat.js
+```
+
+See:
+
+- `loadtest/README.md`
+
+## Embedding profiles
+
+The app now supports named embedding profiles.
+
+Examples:
+
+- `ollama_1536`
+- `openai_small_1536`
+
+Use `DEFAULT_EMBEDDING_PROFILE` in `backend/.env` or the ECS task definition to switch the active embedding profile without editing code.
+
+The active profile controls the provider/model/dimension. If you choose a new dimension, the app creates the matching Qdrant collection automatically on first use.
+
+For per-request overrides, send `embedding_profile` on `/ingest/text`, `/ingest/files`, or `/chat` instead of mixing raw provider/model fields.
 
 ## Reset the backend state
 
@@ -215,19 +256,20 @@ Check:
 
 ### Embedding dimension mismatch
 
-Current default local Ollama setup expects:
+If you intentionally ingest with a different profile, the app will create a new dimension-specific Qdrant collection automatically. If you still see a mismatch, the running container is likely stale and needs a restart.
 
+Current default setup expects:
+
+- profile: `ollama_1536`
 - provider: `ollama`
-- model: `qwen3-embedding`
-- dimension: `4096`
-
-If you changed the schema or old volumes still contain a `VECTOR(1536)` table definition, recreate the database volume and reinitialize the schema.
+- model: `rjmalagon/gte-qwen2-1.5b-instruct-embed-f16`
+- dimension: `1536`
 
 ### Chat returns fallback unexpectedly
 
 Current retrieval order:
 
-- pgvector cosine similarity search
+- Qdrant cosine similarity search
 - lexical fallback against stored titles and chunk content
 - best available semantic matches without applying the threshold
 - safe fallback response only if no chunks exist for the active embedding pair

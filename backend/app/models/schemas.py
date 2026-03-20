@@ -26,6 +26,7 @@ class HealthCheckResponse(BaseModel):
     app: str
     postgres: DependencyHealth
     redis: DependencyHealth
+    qdrant: DependencyHealth
     providers: dict[str, ProviderHealth]
     assumptions: dict[str, Any]
 
@@ -58,6 +59,7 @@ class TextIngestItem(BaseModel):
 
 class IngestTextRequest(BaseModel):
     items: list[TextIngestItem] = Field(min_length=1)
+    embedding_profile: str | None = None
     embedding_provider: ProviderName | None = None
     embedding_model: str | None = None
 
@@ -119,6 +121,7 @@ class ChatRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=25)
     provider: ProviderName | None = None
     model: str | None = None
+    embedding_profile: str | None = None
     embedding_provider: ProviderName | None = None
     embedding_model: str | None = None
 
@@ -197,6 +200,7 @@ class ParsedFile(BaseModel):
 
 
 class EmbeddingSelection(BaseModel):
+    profile_name: str
     provider: ProviderName
     model: str
     dimension: int

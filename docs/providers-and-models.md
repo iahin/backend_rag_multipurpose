@@ -33,11 +33,12 @@ Relevant request fields:
 
 ## Important constraint
 
-Although embedding providers are implemented, the current index is single-column pgvector with fixed dimension. That means:
+Embedding providers are implemented through named profiles. That means:
 
 - generation providers are fully switchable per request
-- embedding providers are not freely switchable for retrieval against the same index
-- request-level embedding overrides must match the canonical configured pair
+- embedding provider/model/dimension are selected together through `embedding_profile`
+- each embedding dimension is stored in its own Qdrant collection
+- new dimensions are created automatically on first use
 
 ## Provider config env vars
 
@@ -52,18 +53,21 @@ Although embedding providers are implemented, the current index is single-column
 
 - `DEFAULT_LLM_PROVIDER`
 - `DEFAULT_LLM_MODEL`
-- `DEFAULT_EMBEDDING_PROVIDER`
-- `DEFAULT_EMBEDDING_MODEL`
-- `CANONICAL_EMBEDDING_DIMENSION`
+- `DEFAULT_EMBEDDING_PROFILE`
+- `EMBEDDING_PROFILES`
 
 Current repository defaults:
 
 - `DEFAULT_LLM_PROVIDER=ollama`
 - `DEFAULT_LLM_MODEL=llama3.2`
-- `DEFAULT_EMBEDDING_PROVIDER=ollama`
-- `DEFAULT_EMBEDDING_MODEL=qwen3-embedding`
-- `CANONICAL_EMBEDDING_DIMENSION=4096`
+- `DEFAULT_EMBEDDING_PROFILE=ollama_1536`
+- `EMBEDDING_PROFILES={"ollama_1536":{"provider":"ollama","model":"rjmalagon/gte-qwen2-1.5b-instruct-embed-f16","dimension":1536},"openai_small_1536":{"provider":"openai","model":"text-embedding-3-small","dimension":1536}}`
 - `SIMILARITY_THRESHOLD=0.35`
+
+Embedding profile registry:
+
+- `DEFAULT_EMBEDDING_PROFILE` selects the active profile
+- `EMBEDDING_PROFILES` defines the named provider/model/dimension map
 
 ## OpenAI
 
@@ -75,7 +79,7 @@ Embedding route implementation:
 
 - `POST https://api.openai.com/v1/embeddings`
 
-OpenAI is implemented but not the default path in the current `.env.example`.
+OpenAI is implemented and can be selected with a profile, but it is not the default path in the current `.env.example`.
 
 ## Gemini
 
@@ -91,7 +95,7 @@ Embedding route implementation:
 Note:
 
 - Gemini embeddings are implemented in code
-- the current MVP still enforces the canonical embedding pair for indexed retrieval
+- the current MVP stores each embedding dimension in its own Qdrant collection
 
 ## Ollama
 
@@ -117,13 +121,13 @@ Optional runtime mode:
 - Ollama can be added with `backend/docker-compose.ollama.yml`
 - in that mode the app uses `http://ollama:11434`
 
-Current default embedding model:
+Current default Ollama embedding model:
 
-- `qwen3-embedding`
+- `rjmalagon/gte-qwen2-1.5b-instruct-embed-f16`
 
-Current default embedding dimension:
+Current default Ollama embedding dimension:
 
-- `4096`
+- `1536`
 
 ## Error conditions
 

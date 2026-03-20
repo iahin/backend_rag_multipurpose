@@ -80,6 +80,14 @@
         "documentation": {}
     },
     {
+        "label": "UUID",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
         "label": "APIRouter",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -561,6 +569,14 @@
     },
     {
         "label": "RetrievedChunk",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "DependencyHealth",
         "importPath": "app.models.schemas",
         "description": "app.models.schemas",
         "isExtraImport": true,
@@ -1217,7 +1233,23 @@
         "documentation": {}
     },
     {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
         "label": "Field",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "field_validator",
         "importPath": "pydantic",
         "description": "pydantic",
         "isExtraImport": true,
@@ -1380,22 +1412,6 @@
         "documentation": {}
     },
     {
-        "label": "dict_row",
-        "importPath": "psycopg.rows",
-        "description": "psycopg.rows",
-        "isExtraImport": true,
-        "detail": "psycopg.rows",
-        "documentation": {}
-    },
-    {
-        "label": "dict_row",
-        "importPath": "psycopg.rows",
-        "description": "psycopg.rows",
-        "isExtraImport": true,
-        "detail": "psycopg.rows",
-        "documentation": {}
-    },
-    {
         "label": "AsyncConnectionPool",
         "importPath": "psycopg_pool",
         "description": "psycopg_pool",
@@ -1444,43 +1460,131 @@
         "documentation": {}
     },
     {
-        "label": "AsyncConnectionPool",
-        "importPath": "psycopg_pool",
-        "description": "psycopg_pool",
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
         "isExtraImport": true,
-        "detail": "psycopg_pool",
+        "detail": "__future__",
         "documentation": {}
     },
     {
-        "label": "AsyncConnectionPool",
-        "importPath": "psycopg_pool",
-        "description": "psycopg_pool",
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
         "isExtraImport": true,
-        "detail": "psycopg_pool",
+        "detail": "__future__",
         "documentation": {}
     },
     {
-        "label": "AsyncConnectionPool",
-        "importPath": "psycopg_pool",
-        "description": "psycopg_pool",
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
         "isExtraImport": true,
-        "detail": "psycopg_pool",
+        "detail": "__future__",
         "documentation": {}
     },
     {
-        "label": "AsyncConnectionPool",
-        "importPath": "psycopg_pool",
-        "description": "psycopg_pool",
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
         "isExtraImport": true,
-        "detail": "psycopg_pool",
+        "detail": "datetime",
         "documentation": {}
     },
     {
-        "label": "Jsonb",
-        "importPath": "psycopg.types.json",
-        "description": "psycopg.types.json",
+        "label": "timezone",
+        "importPath": "datetime",
+        "description": "datetime",
         "isExtraImport": true,
-        "detail": "psycopg.types.json",
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "importPath": "app.db.qdrant",
+        "description": "app.db.qdrant",
+        "isExtraImport": true,
+        "detail": "app.db.qdrant",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "importPath": "app.db.qdrant",
+        "description": "app.db.qdrant",
+        "isExtraImport": true,
+        "detail": "app.db.qdrant",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "importPath": "app.db.qdrant",
+        "description": "app.db.qdrant",
+        "isExtraImport": true,
+        "detail": "app.db.qdrant",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "importPath": "app.db.qdrant",
+        "description": "app.db.qdrant",
+        "isExtraImport": true,
+        "detail": "app.db.qdrant",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "importPath": "app.db.qdrant",
+        "description": "app.db.qdrant",
+        "isExtraImport": true,
+        "detail": "app.db.qdrant",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "importPath": "app.db.qdrant",
+        "description": "app.db.qdrant",
+        "isExtraImport": true,
+        "detail": "app.db.qdrant",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "importPath": "app.db.qdrant",
+        "description": "app.db.qdrant",
+        "isExtraImport": true,
+        "detail": "app.db.qdrant",
         "documentation": {}
     },
     {
@@ -1596,6 +1700,14 @@
         "documentation": {}
     },
     {
+        "label": "Settings",
+        "importPath": "app.core.config",
+        "description": "app.core.config",
+        "isExtraImport": true,
+        "detail": "app.core.config",
+        "documentation": {}
+    },
+    {
         "label": "get_settings",
         "importPath": "app.core.config",
         "description": "app.core.config",
@@ -1612,35 +1724,11 @@
         "documentation": {}
     },
     {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
+        "label": "EmbeddingProfileSpec",
+        "importPath": "app.core.config",
+        "description": "app.core.config",
         "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "datetime",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "timedelta",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
-        "documentation": {}
-    },
-    {
-        "label": "timezone",
-        "importPath": "datetime",
-        "description": "datetime",
-        "isExtraImport": true,
-        "detail": "datetime",
+        "detail": "app.core.config",
         "documentation": {}
     },
     {
@@ -2059,6 +2147,14 @@
         "documentation": {}
     },
     {
+        "label": "EmbeddingService",
+        "importPath": "app.services.embeddings",
+        "description": "app.services.embeddings",
+        "isExtraImport": true,
+        "detail": "app.services.embeddings",
+        "documentation": {}
+    },
+    {
         "label": "PromptBuilder",
         "importPath": "app.services.prompt_builder",
         "description": "app.services.prompt_builder",
@@ -2211,6 +2307,15 @@
         "documentation": {}
     },
     {
+        "label": "asyncio",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "asyncio",
+        "description": "asyncio",
+        "detail": "asyncio",
+        "documentation": {}
+    },
+    {
         "label": "asynccontextmanager",
         "importPath": "contextlib",
         "description": "contextlib",
@@ -2243,6 +2348,15 @@
         "documentation": {}
     },
     {
+        "label": "types",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "types",
+        "description": "types",
+        "detail": "types",
+        "documentation": {}
+    },
+    {
         "label": "TestClient",
         "importPath": "fastapi.testclient",
         "description": "fastapi.testclient",
@@ -2255,7 +2369,7 @@
         "kind": 5,
         "importPath": "backend.app.api.admin",
         "description": "backend.app.api.admin",
-        "peekOfCode": "router = APIRouter()\ndef _build_reset_service(request: Request) -> ResetService:\n    return ResetService(\n        postgres_pool=request.app.state.postgres.pool,\n        redis_manager=request.app.state.redis,\n    )\ndef _build_auth_service(request: Request):\n    return request.app.state.auth_service\n@router.delete(\"/reset\", response_model=ResetResponse)\nasync def reset_backend_state(",
+        "peekOfCode": "router = APIRouter()\ndef _build_reset_service(request: Request) -> ResetService:\n    return ResetService(\n        postgres_pool=request.app.state.postgres.pool,\n        qdrant_manager=request.app.state.qdrant,\n        redis_manager=request.app.state.redis,\n    )\ndef _build_auth_service(request: Request):\n    return request.app.state.auth_service\n@router.delete(\"/reset\", response_model=ResetResponse)",
         "detail": "backend.app.api.admin",
         "documentation": {}
     },
@@ -2273,7 +2387,7 @@
         "kind": 5,
         "importPath": "backend.app.api.chat",
         "description": "backend.app.api.chat",
-        "peekOfCode": "router = APIRouter()\ndef _build_chat_service(request: Request) -> ChatService:\n    return ChatService(\n        settings=request.app.state.settings,\n        postgres_pool=request.app.state.postgres.pool,\n        redis_manager=request.app.state.redis,\n        provider_registry=request.app.state.providers,\n    )\ndef _resolve_rate_limit_key(request: Request, payload: ChatRequest) -> str:\n    if payload.session_id:",
+        "peekOfCode": "router = APIRouter()\ndef _build_chat_service(request: Request) -> ChatService:\n    return ChatService(\n        settings=request.app.state.settings,\n        qdrant_manager=request.app.state.qdrant,\n        redis_manager=request.app.state.redis,\n        provider_registry=request.app.state.providers,\n    )\ndef _resolve_rate_limit_key(request: Request, payload: ChatRequest) -> str:\n    if payload.session_id:",
         "detail": "backend.app.api.chat",
         "documentation": {}
     },
@@ -2282,7 +2396,7 @@
         "kind": 5,
         "importPath": "backend.app.api.health",
         "description": "backend.app.api.health",
-        "peekOfCode": "router = APIRouter()\n@router.get(\"/health\", response_model=HealthCheckResponse)\nasync def health_check(request: Request) -> HealthCheckResponse:\n    postgres_status = await request.app.state.postgres.healthcheck()\n    redis_status = await request.app.state.redis.healthcheck()\n    provider_status = await request.app.state.providers.healthcheck_all()\n    overall_ok = postgres_status.ok and redis_status.ok and all(\n        status.ok for status in provider_status.values()\n    )\n    return HealthCheckResponse(",
+        "peekOfCode": "router = APIRouter()\n@router.get(\"/health\", response_model=HealthCheckResponse)\nasync def health_check(request: Request) -> HealthCheckResponse:\n    postgres_status = await request.app.state.postgres.healthcheck()\n    redis_status = await request.app.state.redis.healthcheck()\n    qdrant_status = await request.app.state.qdrant.healthcheck()\n    provider_status = await request.app.state.providers.healthcheck_all()\n    overall_ok = postgres_status.ok and redis_status.ok and qdrant_status.ok and all(\n        status.ok for status in provider_status.values()\n    )",
         "detail": "backend.app.api.health",
         "documentation": {}
     },
@@ -2291,7 +2405,7 @@
         "kind": 5,
         "importPath": "backend.app.api.ingest",
         "description": "backend.app.api.ingest",
-        "peekOfCode": "router = APIRouter()\ndef _build_ingest_service(request: Request) -> IngestService:\n    return IngestService(\n        settings=request.app.state.settings,\n        redis_manager=request.app.state.redis,\n        postgres_pool=request.app.state.postgres.pool,\n        provider_registry=request.app.state.providers,\n    )\ndef _normalize_optional_form_value(raw: str | None) -> str | None:\n    if raw is None:",
+        "peekOfCode": "router = APIRouter()\ndef _build_ingest_service(request: Request) -> IngestService:\n    return IngestService(\n        settings=request.app.state.settings,\n        redis_manager=request.app.state.redis,\n        qdrant_manager=request.app.state.qdrant,\n        postgres_pool=request.app.state.postgres.pool,\n        provider_registry=request.app.state.providers,\n    )\ndef _normalize_optional_form_value(raw: str | None) -> str | None:",
         "detail": "backend.app.api.ingest",
         "documentation": {}
     },
@@ -2302,6 +2416,15 @@
         "description": "backend.app.api.router",
         "peekOfCode": "api_router = APIRouter()\napi_router.include_router(health_router, tags=[\"health\"])\napi_router.include_router(auth_router, prefix=\"/auth\", tags=[\"auth\"])\napi_router.include_router(\n    ingest_router,\n    prefix=\"/ingest\",\n    tags=[\"ingest\"],\n    dependencies=[Depends(require_authenticated_user)],\n)\napi_router.include_router(",
         "detail": "backend.app.api.router",
+        "documentation": {}
+    },
+    {
+        "label": "EmbeddingProfileSpec",
+        "kind": 6,
+        "importPath": "backend.app.core.config",
+        "description": "backend.app.core.config",
+        "peekOfCode": "class EmbeddingProfileSpec(BaseModel):\n    provider: ProviderName\n    model: str\n    dimension: int\nclass Settings(BaseSettings):\n    model_config = SettingsConfigDict(\n        env_file=\".env\",\n        env_file_encoding=\"utf-8\",\n        case_sensitive=False,\n        extra=\"ignore\",",
+        "detail": "backend.app.core.config",
         "documentation": {}
     },
     {
@@ -2327,7 +2450,7 @@
         "kind": 5,
         "importPath": "backend.app.core.config",
         "description": "backend.app.core.config",
-        "peekOfCode": "ProviderName = Literal[\"openai\", \"gemini\", \"ollama\"]\nclass Settings(BaseSettings):\n    model_config = SettingsConfigDict(\n        env_file=\".env\",\n        env_file_encoding=\"utf-8\",\n        case_sensitive=False,\n        extra=\"ignore\",\n    )\n    app_name: str = Field(default=\"backend-rag-multipurpose\")\n    app_host: str = Field(default=\"0.0.0.0\")",
+        "peekOfCode": "ProviderName = Literal[\"openai\", \"gemini\", \"ollama\"]\nclass EmbeddingProfileSpec(BaseModel):\n    provider: ProviderName\n    model: str\n    dimension: int\nclass Settings(BaseSettings):\n    model_config = SettingsConfigDict(\n        env_file=\".env\",\n        env_file_encoding=\"utf-8\",\n        case_sensitive=False,",
         "detail": "backend.app.core.config",
         "documentation": {}
     },
@@ -2390,7 +2513,7 @@
         "kind": 6,
         "importPath": "backend.app.db.repositories.chunks",
         "description": "backend.app.db.repositories.chunks",
-        "peekOfCode": "class ChunkRepository:\n    def __init__(self, pool: AsyncConnectionPool) -> None:\n        self._pool = pool\n    async def bulk_create(\n        self,\n        document_id: UUID,\n        chunks: list[ChunkUpsert],\n        embedding_provider: str,\n        embedding_model: str,\n    ) -> list[ChunkRecord]:",
+        "peekOfCode": "class ChunkRepository:\n    def __init__(self, qdrant: QdrantManager) -> None:\n        self._qdrant = qdrant\n    async def bulk_create(\n        self,\n        document_id: UUID,\n        chunks: list[ChunkUpsert],\n        embedding_provider: str,\n        embedding_model: str,\n        embedding_profile: str,",
         "detail": "backend.app.db.repositories.chunks",
         "documentation": {}
     },
@@ -2408,7 +2531,7 @@
         "kind": 6,
         "importPath": "backend.app.db.repositories.retrieval",
         "description": "backend.app.db.repositories.retrieval",
-        "peekOfCode": "class RetrievalRepository:\n    def __init__(self, pool: AsyncConnectionPool) -> None:\n        self._pool = pool\n    async def search_similar_chunks(\n        self,\n        embedding: list[float],\n        limit: int,\n        similarity_threshold: float,\n        embedding_provider: str,\n        embedding_model: str,",
+        "peekOfCode": "class RetrievalRepository:\n    def __init__(self, qdrant: QdrantManager) -> None:\n        self._qdrant = qdrant\n    async def search_similar_chunks(\n        self,\n        embedding: list[float],\n        limit: int,\n        similarity_threshold: float,\n        embedding_provider: str,\n        embedding_model: str,",
         "detail": "backend.app.db.repositories.retrieval",
         "documentation": {}
     },
@@ -2419,6 +2542,15 @@
         "description": "backend.app.db.postgres",
         "peekOfCode": "class PostgresManager:\n    def __init__(self, settings: Settings) -> None:\n        self._settings = settings\n        self._pool = AsyncConnectionPool(\n            conninfo=settings.postgres_dsn,\n            min_size=settings.postgres_min_pool_size,\n            max_size=settings.postgres_max_pool_size,\n            kwargs={\"row_factory\": dict_row},\n            open=False,\n        )",
         "detail": "backend.app.db.postgres",
+        "documentation": {}
+    },
+    {
+        "label": "QdrantManager",
+        "kind": 6,
+        "importPath": "backend.app.db.qdrant",
+        "description": "backend.app.db.qdrant",
+        "peekOfCode": "class QdrantManager:\n    def __init__(self, settings: Settings) -> None:\n        self._settings = settings\n        self._client = None\n    @property\n    def client(self):\n        if self._client is None:\n            from qdrant_client import AsyncQdrantClient\n            self._client = AsyncQdrantClient(\n                url=self._settings.qdrant_url,",
+        "detail": "backend.app.db.qdrant",
         "documentation": {}
     },
     {
@@ -2453,7 +2585,7 @@
         "kind": 6,
         "importPath": "backend.app.models.schemas",
         "description": "backend.app.models.schemas",
-        "peekOfCode": "class HealthCheckResponse(BaseModel):\n    status: str\n    app: str\n    postgres: DependencyHealth\n    redis: DependencyHealth\n    providers: dict[str, ProviderHealth]\n    assumptions: dict[str, Any]\nclass NormalizedDocument(BaseModel):\n    title: str\n    source_type: str",
+        "peekOfCode": "class HealthCheckResponse(BaseModel):\n    status: str\n    app: str\n    postgres: DependencyHealth\n    redis: DependencyHealth\n    qdrant: DependencyHealth\n    providers: dict[str, ProviderHealth]\n    assumptions: dict[str, Any]\nclass NormalizedDocument(BaseModel):\n    title: str",
         "detail": "backend.app.models.schemas",
         "documentation": {}
     },
@@ -2480,7 +2612,7 @@
         "kind": 6,
         "importPath": "backend.app.models.schemas",
         "description": "backend.app.models.schemas",
-        "peekOfCode": "class IngestTextRequest(BaseModel):\n    items: list[TextIngestItem] = Field(min_length=1)\n    embedding_provider: ProviderName | None = None\n    embedding_model: str | None = None\nclass IngestFileResult(BaseModel):\n    filename: str\n    detected_type: str\n    success: bool\n    chunks_created: int = 0\n    error: str | None = None",
+        "peekOfCode": "class IngestTextRequest(BaseModel):\n    items: list[TextIngestItem] = Field(min_length=1)\n    embedding_profile: str | None = None\n    embedding_provider: ProviderName | None = None\n    embedding_model: str | None = None\nclass IngestFileResult(BaseModel):\n    filename: str\n    detected_type: str\n    success: bool\n    chunks_created: int = 0",
         "detail": "backend.app.models.schemas",
         "documentation": {}
     },
@@ -2543,7 +2675,7 @@
         "kind": 6,
         "importPath": "backend.app.models.schemas",
         "description": "backend.app.models.schemas",
-        "peekOfCode": "class ChatRequest(BaseModel):\n    message: str\n    session_id: str | None = None\n    chat_history: list[ChatMessage] = Field(default_factory=list)\n    top_k: int = Field(default=5, ge=1, le=25)\n    provider: ProviderName | None = None\n    model: str | None = None\n    embedding_provider: ProviderName | None = None\n    embedding_model: str | None = None\n    @field_validator(\"message\")",
+        "peekOfCode": "class ChatRequest(BaseModel):\n    message: str\n    session_id: str | None = None\n    chat_history: list[ChatMessage] = Field(default_factory=list)\n    top_k: int = Field(default=5, ge=1, le=25)\n    provider: ProviderName | None = None\n    model: str | None = None\n    embedding_profile: str | None = None\n    embedding_provider: ProviderName | None = None\n    embedding_model: str | None = None",
         "detail": "backend.app.models.schemas",
         "documentation": {}
     },
@@ -2588,7 +2720,7 @@
         "kind": 6,
         "importPath": "backend.app.models.schemas",
         "description": "backend.app.models.schemas",
-        "peekOfCode": "class ParsedFile(BaseModel):\n    filename: str\n    detected_type: str\n    documents: list[NormalizedDocument] = Field(default_factory=list)\nclass EmbeddingSelection(BaseModel):\n    provider: ProviderName\n    model: str\n    dimension: int\nclass GenerationSelection(BaseModel):\n    provider: ProviderName",
+        "peekOfCode": "class ParsedFile(BaseModel):\n    filename: str\n    detected_type: str\n    documents: list[NormalizedDocument] = Field(default_factory=list)\nclass EmbeddingSelection(BaseModel):\n    profile_name: str\n    provider: ProviderName\n    model: str\n    dimension: int\nclass GenerationSelection(BaseModel):",
         "detail": "backend.app.models.schemas",
         "documentation": {}
     },
@@ -2597,7 +2729,7 @@
         "kind": 6,
         "importPath": "backend.app.models.schemas",
         "description": "backend.app.models.schemas",
-        "peekOfCode": "class EmbeddingSelection(BaseModel):\n    provider: ProviderName\n    model: str\n    dimension: int\nclass GenerationSelection(BaseModel):\n    provider: ProviderName\n    model: str\nclass RetrievedChunk(BaseModel):\n    chunk_id: UUID\n    document_id: UUID",
+        "peekOfCode": "class EmbeddingSelection(BaseModel):\n    profile_name: str\n    provider: ProviderName\n    model: str\n    dimension: int\nclass GenerationSelection(BaseModel):\n    provider: ProviderName\n    model: str\nclass RetrievedChunk(BaseModel):\n    chunk_id: UUID",
         "detail": "backend.app.models.schemas",
         "documentation": {}
     },
@@ -2921,7 +3053,7 @@
         "kind": 6,
         "importPath": "backend.app.services.chat_service",
         "description": "backend.app.services.chat_service",
-        "peekOfCode": "class ChatService:\n    def __init__(\n        self,\n        settings: Settings,\n        postgres_pool: AsyncConnectionPool,\n        redis_manager: RedisManager,\n        provider_registry: ProviderRegistry,\n    ) -> None:\n        self._settings = settings\n        self._providers = provider_registry",
+        "peekOfCode": "class ChatService:\n    def __init__(\n        self,\n        settings: Settings,\n        qdrant_manager: QdrantManager,\n        redis_manager: RedisManager,\n        provider_registry: ProviderRegistry,\n    ) -> None:\n        self._settings = settings\n        self._providers = provider_registry",
         "detail": "backend.app.services.chat_service",
         "documentation": {}
     },
@@ -2984,7 +3116,7 @@
         "kind": 6,
         "importPath": "backend.app.services.embeddings",
         "description": "backend.app.services.embeddings",
-        "peekOfCode": "class EmbeddingService:\n    def __init__(self, settings: Settings, cache_service: CacheService | None = None) -> None:\n        self._settings = settings\n        self._cache = cache_service\n        self._providers: dict[ProviderName, EmbeddingProvider] = {\n            \"openai\": OpenAIEmbeddingProvider(settings),\n            \"gemini\": GeminiEmbeddingProvider(settings),\n            \"ollama\": OllamaEmbeddingProvider(settings),\n        }\n    def resolve_selection(",
+        "peekOfCode": "class EmbeddingService:\n    def __init__(self, settings: Settings, cache_service: CacheService | None = None) -> None:\n        self._settings = settings\n        self._cache = cache_service\n        self._providers: dict[ProviderName, EmbeddingProvider] = {\n            \"openai\": OpenAIEmbeddingProvider(settings),\n            \"gemini\": GeminiEmbeddingProvider(settings),\n            \"ollama\": OllamaEmbeddingProvider(settings),\n        }\n        if self._settings.default_embedding_profile not in self._settings.embedding_profiles:",
         "detail": "backend.app.services.embeddings",
         "documentation": {}
     },
@@ -3002,7 +3134,7 @@
         "kind": 6,
         "importPath": "backend.app.services.ingest_service",
         "description": "backend.app.services.ingest_service",
-        "peekOfCode": "class IngestService:\n    def __init__(\n        self,\n        settings: Settings,\n        redis_manager: RedisManager,\n        postgres_pool: AsyncConnectionPool,\n        provider_registry: ProviderRegistry,\n    ) -> None:\n        self._settings = settings\n        self._redis_manager = redis_manager",
+        "peekOfCode": "class IngestService:\n    def __init__(\n        self,\n        settings: Settings,\n        redis_manager: RedisManager,\n        qdrant_manager: QdrantManager,\n        postgres_pool: AsyncConnectionPool,\n        provider_registry: ProviderRegistry,\n    ) -> None:\n        self._settings = settings",
         "detail": "backend.app.services.ingest_service",
         "documentation": {}
     },
@@ -3011,7 +3143,7 @@
         "kind": 5,
         "importPath": "backend.app.services.ingest_service",
         "description": "backend.app.services.ingest_service",
-        "peekOfCode": "logger = get_logger(__name__)\nclass IngestService:\n    def __init__(\n        self,\n        settings: Settings,\n        redis_manager: RedisManager,\n        postgres_pool: AsyncConnectionPool,\n        provider_registry: ProviderRegistry,\n    ) -> None:\n        self._settings = settings",
+        "peekOfCode": "logger = get_logger(__name__)\nclass IngestService:\n    def __init__(\n        self,\n        settings: Settings,\n        redis_manager: RedisManager,\n        qdrant_manager: QdrantManager,\n        postgres_pool: AsyncConnectionPool,\n        provider_registry: ProviderRegistry,\n    ) -> None:",
         "detail": "backend.app.services.ingest_service",
         "documentation": {}
     },
@@ -3038,7 +3170,7 @@
         "kind": 6,
         "importPath": "backend.app.services.reset_service",
         "description": "backend.app.services.reset_service",
-        "peekOfCode": "class ResetService:\n    def __init__(\n        self,\n        postgres_pool: AsyncConnectionPool,\n        redis_manager: RedisManager,\n    ) -> None:\n        self._document_repository = DocumentRepository(postgres_pool)\n        self._redis_manager = redis_manager\n    async def reset_all(self) -> ResetResponse:\n        deletion_counts = await self._document_repository.delete_all()",
+        "peekOfCode": "class ResetService:\n    def __init__(\n        self,\n        postgres_pool: AsyncConnectionPool,\n        qdrant_manager: QdrantManager,\n        redis_manager: RedisManager,\n    ) -> None:\n        self._document_repository = DocumentRepository(postgres_pool)\n        self._qdrant = qdrant_manager\n        self._redis_manager = redis_manager",
         "detail": "backend.app.services.reset_service",
         "documentation": {}
     },
@@ -3047,7 +3179,7 @@
         "kind": 6,
         "importPath": "backend.app.services.retrieval",
         "description": "backend.app.services.retrieval",
-        "peekOfCode": "class RetrievalService:\n    def __init__(\n        self,\n        settings: Settings,\n        postgres_pool: AsyncConnectionPool,\n        redis_manager: RedisManager,\n    ) -> None:\n        self._settings = settings\n        self._repository = RetrievalRepository(postgres_pool)\n        self._cache = CacheService(",
+        "peekOfCode": "class RetrievalService:\n    def __init__(\n        self,\n        settings: Settings,\n        qdrant_manager: QdrantManager,\n        redis_manager: RedisManager,\n    ) -> None:\n        self._settings = settings\n        self._repository = RetrievalRepository(qdrant_manager)\n        self._cache = CacheService(",
         "detail": "backend.app.services.retrieval",
         "documentation": {}
     },
@@ -3106,11 +3238,65 @@
         "documentation": {}
     },
     {
+        "label": "StubSettings",
+        "kind": 6,
+        "importPath": "backend.tests.test_embedding_profiles",
+        "description": "backend.tests.test_embedding_profiles",
+        "peekOfCode": "class StubSettings:\n    default_embedding_profile = \"ollama_4096\"\n    embedding_profiles = {\n        \"ollama_4096\": EmbeddingProfileSpec(\n            provider=\"ollama\",\n            model=\"qwen3-embedding\",\n            dimension=4096,\n        ),\n        \"openai_small_1536\": EmbeddingProfileSpec(\n            provider=\"openai\",",
+        "detail": "backend.tests.test_embedding_profiles",
+        "documentation": {}
+    },
+    {
+        "label": "test_embedding_service_resolves_4096_profile",
+        "kind": 2,
+        "importPath": "backend.tests.test_embedding_profiles",
+        "description": "backend.tests.test_embedding_profiles",
+        "peekOfCode": "def test_embedding_service_resolves_4096_profile() -> None:\n    service = EmbeddingService(StubSettings())\n    selection = service.resolve_selection(\"ollama_4096\", None, None)\n    assert selection.provider == \"ollama\"\n    assert selection.model == \"qwen3-embedding\"\n    assert selection.dimension == 4096",
+        "detail": "backend.tests.test_embedding_profiles",
+        "documentation": {}
+    },
+    {
+        "label": "redis_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_embedding_profiles",
+        "description": "backend.tests.test_embedding_profiles",
+        "peekOfCode": "redis_module = types.ModuleType(\"redis\")\nredis_asyncio_module = types.ModuleType(\"redis.asyncio\")\nredis_asyncio_module.Redis = object\nredis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\nfrom app.core.config import EmbeddingProfileSpec\nfrom app.services.embeddings import EmbeddingService\nclass StubSettings:\n    default_embedding_profile = \"ollama_4096\"",
+        "detail": "backend.tests.test_embedding_profiles",
+        "documentation": {}
+    },
+    {
+        "label": "redis_asyncio_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_embedding_profiles",
+        "description": "backend.tests.test_embedding_profiles",
+        "peekOfCode": "redis_asyncio_module = types.ModuleType(\"redis.asyncio\")\nredis_asyncio_module.Redis = object\nredis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\nfrom app.core.config import EmbeddingProfileSpec\nfrom app.services.embeddings import EmbeddingService\nclass StubSettings:\n    default_embedding_profile = \"ollama_4096\"\n    embedding_profiles = {",
+        "detail": "backend.tests.test_embedding_profiles",
+        "documentation": {}
+    },
+    {
+        "label": "redis_asyncio_module.Redis",
+        "kind": 5,
+        "importPath": "backend.tests.test_embedding_profiles",
+        "description": "backend.tests.test_embedding_profiles",
+        "peekOfCode": "redis_asyncio_module.Redis = object\nredis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\nfrom app.core.config import EmbeddingProfileSpec\nfrom app.services.embeddings import EmbeddingService\nclass StubSettings:\n    default_embedding_profile = \"ollama_4096\"\n    embedding_profiles = {\n        \"ollama_4096\": EmbeddingProfileSpec(",
+        "detail": "backend.tests.test_embedding_profiles",
+        "documentation": {}
+    },
+    {
+        "label": "redis_module.asyncio",
+        "kind": 5,
+        "importPath": "backend.tests.test_embedding_profiles",
+        "description": "backend.tests.test_embedding_profiles",
+        "peekOfCode": "redis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\nfrom app.core.config import EmbeddingProfileSpec\nfrom app.services.embeddings import EmbeddingService\nclass StubSettings:\n    default_embedding_profile = \"ollama_4096\"\n    embedding_profiles = {\n        \"ollama_4096\": EmbeddingProfileSpec(\n            provider=\"ollama\",",
+        "detail": "backend.tests.test_embedding_profiles",
+        "documentation": {}
+    },
+    {
         "label": "StubPostgres",
         "kind": 6,
         "importPath": "backend.tests.test_health",
         "description": "backend.tests.test_health",
-        "peekOfCode": "class StubPostgres:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubRedis:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubProviders:\n    async def healthcheck_all(self) -> dict[str, ProviderHealth]:\n        return {\n            \"openai\": ProviderHealth(",
+        "peekOfCode": "class StubPostgres:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubRedis:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubQdrant:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubProviders:",
         "detail": "backend.tests.test_health",
         "documentation": {}
     },
@@ -3119,7 +3305,16 @@
         "kind": 6,
         "importPath": "backend.tests.test_health",
         "description": "backend.tests.test_health",
-        "peekOfCode": "class StubRedis:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubProviders:\n    async def healthcheck_all(self) -> dict[str, ProviderHealth]:\n        return {\n            \"openai\": ProviderHealth(\n                ok=True,\n                detail=\"configuration_present\",\n                enabled=True,",
+        "peekOfCode": "class StubRedis:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubQdrant:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubProviders:\n    async def healthcheck_all(self) -> dict[str, ProviderHealth]:\n        return {\n            \"openai\": ProviderHealth(",
+        "detail": "backend.tests.test_health",
+        "documentation": {}
+    },
+    {
+        "label": "StubQdrant",
+        "kind": 6,
+        "importPath": "backend.tests.test_health",
+        "description": "backend.tests.test_health",
+        "peekOfCode": "class StubQdrant:\n    async def healthcheck(self) -> DependencyHealth:\n        return DependencyHealth(ok=True, detail=\"connected\")\nclass StubProviders:\n    async def healthcheck_all(self) -> dict[str, ProviderHealth]:\n        return {\n            \"openai\": ProviderHealth(\n                ok=True,\n                detail=\"configuration_present\",\n                enabled=True,",
         "detail": "backend.tests.test_health",
         "documentation": {}
     },
@@ -3137,7 +3332,7 @@
         "kind": 6,
         "importPath": "backend.tests.test_health",
         "description": "backend.tests.test_health",
-        "peekOfCode": "class StubSettings:\n    app_name = \"backend-rag-multipurpose\"\n    def phase_one_assumptions(self) -> dict:\n        return {\n            \"default_generation_provider\": \"openai\",\n            \"default_generation_model\": \"gpt-4.1-mini\",\n            \"default_embedding_provider\": \"openai\",\n            \"default_embedding_model\": \"text-embedding-3-small\",\n        }\ndef build_test_app() -> FastAPI:",
+        "peekOfCode": "class StubSettings:\n    app_name = \"backend-rag-multipurpose\"\n    def phase_one_assumptions(self) -> dict:\n        return {\n            \"default_generation_provider\": \"ollama\",\n            \"default_generation_model\": \"llama3.2\",\n            \"default_embedding_provider\": \"ollama\",\n            \"default_embedding_model\": \"rjmalagon/gte-qwen2-1.5b-instruct-embed-f16\",\n        }\ndef build_test_app() -> FastAPI:",
         "detail": "backend.tests.test_health",
         "documentation": {}
     },
@@ -3146,7 +3341,7 @@
         "kind": 2,
         "importPath": "backend.tests.test_health",
         "description": "backend.tests.test_health",
-        "peekOfCode": "def build_test_app() -> FastAPI:\n    app = FastAPI()\n    app.include_router(health_router)\n    app.state.postgres = StubPostgres()\n    app.state.redis = StubRedis()\n    app.state.providers = StubProviders()\n    app.state.settings = StubSettings()\n    return app\ndef test_health_endpoint_returns_ok() -> None:\n    client = TestClient(build_test_app())",
+        "peekOfCode": "def build_test_app() -> FastAPI:\n    app = FastAPI()\n    app.include_router(health_router)\n    app.state.postgres = StubPostgres()\n    app.state.redis = StubRedis()\n    app.state.qdrant = StubQdrant()\n    app.state.providers = StubProviders()\n    app.state.settings = StubSettings()\n    return app\ndef test_health_endpoint_returns_ok() -> None:",
         "detail": "backend.tests.test_health",
         "documentation": {}
     },
@@ -3155,7 +3350,7 @@
         "kind": 2,
         "importPath": "backend.tests.test_health",
         "description": "backend.tests.test_health",
-        "peekOfCode": "def test_health_endpoint_returns_ok() -> None:\n    client = TestClient(build_test_app())\n    response = client.get(\"/health\")\n    assert response.status_code == 200\n    payload = response.json()\n    assert payload[\"status\"] == \"ok\"\n    assert payload[\"postgres\"][\"ok\"] is True\n    assert payload[\"redis\"][\"ok\"] is True\n    assert payload[\"providers\"][\"ollama\"][\"detail\"] == \"reachable\"",
+        "peekOfCode": "def test_health_endpoint_returns_ok() -> None:\n    client = TestClient(build_test_app())\n    response = client.get(\"/health\")\n    assert response.status_code == 200\n    payload = response.json()\n    assert payload[\"status\"] == \"ok\"\n    assert payload[\"postgres\"][\"ok\"] is True\n    assert payload[\"redis\"][\"ok\"] is True\n    assert payload[\"qdrant\"][\"ok\"] is True\n    assert payload[\"providers\"][\"ollama\"][\"detail\"] == \"reachable\"",
         "detail": "backend.tests.test_health",
         "documentation": {}
     },

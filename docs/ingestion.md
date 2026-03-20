@@ -116,16 +116,13 @@ The ingestion endpoints expose:
 
 - `embedding_provider`
 - `embedding_model`
+- `embedding_profile`
 
-In the current implementation these values must match:
+In the current implementation these values must match a configured embedding profile.
 
-- `DEFAULT_EMBEDDING_PROVIDER`
-- `DEFAULT_EMBEDDING_MODEL`
+The active profile comes from:
 
-Current repository default:
+- `DEFAULT_EMBEDDING_PROFILE`
+- `EMBEDDING_PROFILES`
 
-- `DEFAULT_EMBEDDING_PROVIDER=ollama`
-- `DEFAULT_EMBEDDING_MODEL=qwen3-embedding`
-- `CANONICAL_EMBEDDING_DIMENSION=4096`
-
-Otherwise the request is rejected because the stored index uses one canonical fixed-dimension vector column.
+If the profile uses a new embedding dimension, the app creates the matching Qdrant collection automatically on first use.

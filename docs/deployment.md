@@ -4,9 +4,10 @@
 
 The repository includes:
 
-- `backend/docker-compose.yml` for the FastAPI app, PostgreSQL, and Redis
+- `backend/docker-compose.yml` for local `nginx`, the FastAPI app, PostgreSQL, Qdrant, and Redis
 - `backend/docker-compose.ollama.yml` for optional Ollama-in-Docker mode
 - `backend/Dockerfile` for the FastAPI service image
+- `deploy/ecs/README.md` for the ECS on Fargate deployment path with `nginx`
 
 ## Start the full stack
 
@@ -15,17 +16,21 @@ copy backend\.env.example backend\.env
 docker compose -f backend/docker-compose.yml up --build -d
 ```
 
+In local Docker mode, the Compose app service reads `backend/.env`. The `.env.example` file is only the starter template.
+
 If host port `9010` is unavailable, override it before starting:
 
 ```bash
-set HOST_APP_PORT=8010
+set HOST_PROXY_PORT=8010
 docker compose -f backend/docker-compose.yml up --build -d
 ```
 
 This starts:
 
-- FastAPI app on `http://localhost:9010` by default
-- PostgreSQL with pgvector image `pgvector/pgvector:pg16`
+- `nginx` on `http://localhost:9010` by default
+- FastAPI app behind `nginx` on the Docker network
+- PostgreSQL for document/auth metadata
+- Qdrant for chunk vectors and similarity search
 - Redis `redis:7.4-alpine`
 
 Ollama is not containerized in the default stack.
@@ -34,6 +39,10 @@ Default behavior:
 
 - run Ollama on the host machine
 - the app container connects to `http://host.docker.internal:11434`
+
+Local traffic flow:
+
+- `http://localhost:9010` -> `nginx` -> app
 
 ## Optional Ollama-in-Docker mode
 
@@ -78,7 +87,7 @@ docker build -f backend/Dockerfile -t rag-backend backend
 docker run --rm -p 9010:8000 --env-file backend/.env rag-backend
 ```
 
-If you run the app container outside Compose, make sure `POSTGRES_DSN`, `REDIS_URL`, and `OLLAMA_BASE_URL` point to reachable hosts.
+If you run the app container outside Compose, make sure `POSTGRES_DSN`, `REDIS_URL`, `QDRANT_URL`, and `OLLAMA_BASE_URL` point to reachable hosts.
 
 ## Required env vars for deployment
 
@@ -86,9 +95,8 @@ If you run the app container outside Compose, make sure `POSTGRES_DSN`, `REDIS_U
 - `REDIS_URL`
 - `DEFAULT_LLM_PROVIDER`
 - `DEFAULT_LLM_MODEL`
-- `DEFAULT_EMBEDDING_PROVIDER`
-- `DEFAULT_EMBEDDING_MODEL`
-- `CANONICAL_EMBEDDING_DIMENSION`
+- `DEFAULT_EMBEDDING_PROFILE`
+- `EMBEDDING_PROFILES`
 - `AUTH_ENABLED`
 - `AUTH_JWT_SECRET`
 - `AUTH_BOOTSTRAP_ADMIN_USERNAME`
@@ -96,9 +104,8 @@ If you run the app container outside Compose, make sure `POSTGRES_DSN`, `REDIS_U
 
 Current repository default embedding settings:
 
-- `DEFAULT_EMBEDDING_PROVIDER=ollama`
-- `DEFAULT_EMBEDDING_MODEL=qwen3-embedding`
-- `CANONICAL_EMBEDDING_DIMENSION=4096`
+- `DEFAULT_EMBEDDING_PROFILE=ollama_1536`
+- `EMBEDDING_PROFILES={"ollama_1536":{"provider":"ollama","model":"rjmalagon/gte-qwen2-1.5b-instruct-embed-f16","dimension":1536},"openai_small_1536":{"provider":"openai","model":"text-embedding-3-small","dimension":1536}}`
 - `SIMILARITY_THRESHOLD=0.35`
 
 Depending on provider usage:
@@ -125,7 +132,7 @@ Auth table note:
 
 - the application now creates `app_users` and `api_keys` on startup if they are missing
 - this avoids startup failure on older local volumes that were initialized before the auth schema was added
-- document and chunk schema changes still require an explicit migration or volume reset
+- chunk vectors now live in Qdrant collections, which are created automatically on first use
 
 ## Authentication deployment notes
 
@@ -164,6 +171,7 @@ Implemented:
 - hashed API keys
 - health endpoint
 - provider abstraction
+- Qdrant-backed chunk storage and retrieval
 
 Not yet implemented:
 
@@ -173,3 +181,22 @@ Not yet implemented:
 - structured observability stack
 - secrets manager integration
 - multi-replica coordination
+
+## ECS on Fargate path
+
+If you want everything running inside ECS on Fargate:
+
+- use the ECS assets under `deploy/ecs/`
+- use `backend/nginx/Dockerfile` with `NGINX_UPSTREAM_HOST` and `NGINX_UPSTREAM_PORT` for the public reverse proxy
+- use `backend/postgres/Dockerfile` so the database schema is baked into the image
+
+This deployment keeps `nginx`, the FastAPI app, PostgreSQL, and Redis in one ECS task and exposes port `80`.
+
+Important constraint:
+
+- PostgreSQL and Redis become ephemeral in this Fargate shape
+- for durable production, move them out of the task
+
+Entry point:
+
+- `deploy/ecs/README.md`

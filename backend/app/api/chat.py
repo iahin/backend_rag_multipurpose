@@ -13,7 +13,7 @@ router = APIRouter()
 def _build_chat_service(request: Request) -> ChatService:
     return ChatService(
         settings=request.app.state.settings,
-        postgres_pool=request.app.state.postgres.pool,
+        qdrant_manager=request.app.state.qdrant,
         redis_manager=request.app.state.redis,
         provider_registry=request.app.state.providers,
     )

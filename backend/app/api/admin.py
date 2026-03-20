@@ -18,6 +18,7 @@ router = APIRouter()
 def _build_reset_service(request: Request) -> ResetService:
     return ResetService(
         postgres_pool=request.app.state.postgres.pool,
+        qdrant_manager=request.app.state.qdrant,
         redis_manager=request.app.state.redis,
     )
 

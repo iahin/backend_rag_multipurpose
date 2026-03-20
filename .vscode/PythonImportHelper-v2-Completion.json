@@ -88,6 +88,14 @@
         "documentation": {}
     },
     {
+        "label": "UUID",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
         "label": "APIRouter",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -329,6 +337,14 @@
     },
     {
         "label": "UploadFile",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "FastAPI",
         "importPath": "fastapi",
         "description": "fastapi",
         "isExtraImport": true,
@@ -1024,6 +1040,78 @@
         "documentation": {}
     },
     {
+        "label": "AccessTokenResponse",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "AuthenticatedUser",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "ChatCitation",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "ChatRequest",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "ChatServiceResult",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "EmbeddingSelection",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "IngestFileResult",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "IngestTextRequest",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
+        "label": "IngestTextResponse",
+        "importPath": "app.models.schemas",
+        "description": "app.models.schemas",
+        "isExtraImport": true,
+        "detail": "app.models.schemas",
+        "documentation": {}
+    },
+    {
         "label": "NormalizedDocument",
         "importPath": "app.models.schemas",
         "description": "app.models.schemas",
@@ -1194,6 +1282,31 @@
     },
     {
         "label": "router",
+        "importPath": "app.api.auth",
+        "description": "app.api.auth",
+        "isExtraImport": true,
+        "detail": "app.api.auth",
+        "documentation": {}
+    },
+    {
+        "label": "app.api.chat",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "app.api.chat",
+        "description": "app.api.chat",
+        "detail": "app.api.chat",
+        "documentation": {}
+    },
+    {
+        "label": "router",
+        "importPath": "app.api.chat",
+        "description": "app.api.chat",
+        "isExtraImport": true,
+        "detail": "app.api.chat",
+        "documentation": {}
+    },
+    {
+        "label": "router",
         "importPath": "app.api.chat",
         "description": "app.api.chat",
         "isExtraImport": true,
@@ -1214,6 +1327,23 @@
         "description": "app.api.health",
         "isExtraImport": true,
         "detail": "app.api.health",
+        "documentation": {}
+    },
+    {
+        "label": "app.api.ingest",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "app.api.ingest",
+        "description": "app.api.ingest",
+        "detail": "app.api.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "router",
+        "importPath": "app.api.ingest",
+        "description": "app.api.ingest",
+        "isExtraImport": true,
+        "detail": "app.api.ingest",
         "documentation": {}
     },
     {
@@ -1484,6 +1614,22 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "datetime",
         "importPath": "datetime",
         "description": "datetime",
@@ -1501,6 +1647,30 @@
     },
     {
         "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timedelta",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
         "importPath": "datetime",
         "description": "datetime",
         "isExtraImport": true,
@@ -1709,6 +1879,14 @@
     },
     {
         "label": "get_settings",
+        "importPath": "app.core.config",
+        "description": "app.core.config",
+        "isExtraImport": true,
+        "detail": "app.core.config",
+        "documentation": {}
+    },
+    {
+        "label": "EmbeddingProfileSpec",
         "importPath": "app.core.config",
         "description": "app.core.config",
         "isExtraImport": true,
@@ -2348,11 +2526,28 @@
         "documentation": {}
     },
     {
+        "label": "pytest",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pytest",
+        "description": "pytest",
+        "detail": "pytest",
+        "documentation": {}
+    },
+    {
         "label": "types",
         "kind": 6,
         "isExtraImport": true,
         "importPath": "types",
         "description": "types",
+        "detail": "types",
+        "documentation": {}
+    },
+    {
+        "label": "SimpleNamespace",
+        "importPath": "types",
+        "description": "types",
+        "isExtraImport": true,
         "detail": "types",
         "documentation": {}
     },
@@ -3211,12 +3406,300 @@
         "documentation": {}
     },
     {
+        "label": "pytest_addoption",
+        "kind": 2,
+        "importPath": "backend.tests.conftest",
+        "description": "backend.tests.conftest",
+        "peekOfCode": "def pytest_addoption(parser: pytest.Parser) -> None:\n    group = parser.getgroup(\"live-api\")\n    group.addoption(\"--live-api-base-url\", action=\"store\", default=None)\n    group.addoption(\"--live-api-username\", action=\"store\", default=None)\n    group.addoption(\"--live-api-password\", action=\"store\", default=None)\n    group.addoption(\"--live-api-ingest-text\", action=\"store\", default=None)\n    group.addoption(\"--live-api-ingest-title\", action=\"store\", default=\"SNAIC Overview\")\n    group.addoption(\"--live-api-chat-message\", action=\"store\", default=\"what is snaic\")\n    group.addoption(\"--live-api-generation-provider\", action=\"store\", default=None)\n    group.addoption(\"--live-api-generation-model\", action=\"store\", default=None)",
+        "detail": "backend.tests.conftest",
+        "documentation": {}
+    },
+    {
+        "label": "live_api_config",
+        "kind": 2,
+        "importPath": "backend.tests.conftest",
+        "description": "backend.tests.conftest",
+        "peekOfCode": "def live_api_config(request: pytest.FixtureRequest) -> dict[str, str | None]:\n    options = {\n        \"base_url\": request.config.getoption(\"--live-api-base-url\"),\n        \"username\": request.config.getoption(\"--live-api-username\"),\n        \"password\": request.config.getoption(\"--live-api-password\"),\n        \"ingest_text\": request.config.getoption(\"--live-api-ingest-text\"),\n        \"ingest_title\": request.config.getoption(\"--live-api-ingest-title\"),\n        \"chat_message\": request.config.getoption(\"--live-api-chat-message\"),\n        \"generation_provider\": request.config.getoption(\"--live-api-generation-provider\"),\n        \"generation_model\": request.config.getoption(\"--live-api-generation-model\"),",
+        "detail": "backend.tests.conftest",
+        "documentation": {}
+    },
+    {
         "label": "BACKEND_ROOT",
         "kind": 5,
         "importPath": "backend.tests.conftest",
         "description": "backend.tests.conftest",
-        "peekOfCode": "BACKEND_ROOT = Path(__file__).resolve().parents[1]\nif str(BACKEND_ROOT) not in sys.path:\n    sys.path.insert(0, str(BACKEND_ROOT))",
+        "peekOfCode": "BACKEND_ROOT = Path(__file__).resolve().parents[1]\nif str(BACKEND_ROOT) not in sys.path:\n    sys.path.insert(0, str(BACKEND_ROOT))\ndef pytest_addoption(parser: pytest.Parser) -> None:\n    group = parser.getgroup(\"live-api\")\n    group.addoption(\"--live-api-base-url\", action=\"store\", default=None)\n    group.addoption(\"--live-api-username\", action=\"store\", default=None)\n    group.addoption(\"--live-api-password\", action=\"store\", default=None)\n    group.addoption(\"--live-api-ingest-text\", action=\"store\", default=None)\n    group.addoption(\"--live-api-ingest-title\", action=\"store\", default=\"SNAIC Overview\")",
         "detail": "backend.tests.conftest",
+        "documentation": {}
+    },
+    {
+        "label": "StubSettings",
+        "kind": 6,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "class StubSettings:\n    app_name = \"backend-rag-multipurpose\"\n    auth_enabled = True\n    auth_require_https = False\n    auth_jwt_secret = \"test-secret\"\n    auth_jwt_algorithm = \"HS256\"\n    auth_access_token_ttl_seconds = 3600\n    auth_bootstrap_admin_username = \"admin\"\n    auth_bootstrap_admin_password = \"change-me-immediately\"\n    default_llm_provider = \"ollama\"",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "FakeAuthService",
+        "kind": 6,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "class FakeAuthService:\n    def __init__(self, settings: StubSettings) -> None:\n        self._settings = settings\n        self._user = AuthenticatedUser(\n            id=UUID(\"11111111-1111-1111-1111-111111111111\"),\n            username=settings.auth_bootstrap_admin_username,\n            is_admin=True,\n            auth_type=\"bearer\",\n        )\n    async def issue_access_token(self, username: str, password: str) -> AccessTokenResponse:",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "FakeIngestService",
+        "kind": 6,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "class FakeIngestService:\n    def __init__(self, settings: StubSettings, corpus: list[dict[str, str]]) -> None:\n        self._settings = settings\n        self._corpus = corpus\n    async def ingest_text_items(self, payload: IngestTextRequest) -> IngestTextResponse:\n        selection = self._resolve_selection(\n            payload.embedding_profile,\n            payload.embedding_provider,\n            payload.embedding_model,\n        )",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "FakeChatService",
+        "kind": 6,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "class FakeChatService:\n    def __init__(self, settings: StubSettings, corpus: list[dict[str, str]]) -> None:\n        self._settings = settings\n        self._corpus = corpus\n    async def prepare_chat(self, payload: ChatRequest, rate_limit_key: str) -> ChatServiceResult:\n        answer = self._corpus[-1][\"content\"] if self._corpus else \"I couldn't find that in the knowledge base.\"\n        profile = self._resolve_profile(payload.embedding_profile)\n        return ChatServiceResult(\n            answer=answer,\n            citations=[",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "build_app",
+        "kind": 2,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "def build_app() -> FastAPI:\n    settings = StubSettings()\n    corpus: list[dict[str, str]] = []\n    app = FastAPI()\n    app.include_router(auth_router, prefix=\"/auth\")\n    app.include_router(ingest_router, prefix=\"/ingest\")\n    app.include_router(chat_router, prefix=\"/chat\")\n    app.state.settings = settings\n    app.state.auth_service = FakeAuthService(settings)\n    app.state.fake_corpus = corpus",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "test_auth_then_ingest_then_chat_returns_ingested_content",
+        "kind": 2,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "def test_auth_then_ingest_then_chat_returns_ingested_content(monkeypatch) -> None:\n    app = build_app()\n    monkeypatch.setattr(\n        ingest_api,\n        \"_build_ingest_service\",\n        lambda request: FakeIngestService(request.app.state.settings, request.app.state.fake_corpus),\n    )\n    monkeypatch.setattr(\n        chat_api,\n        \"_build_chat_service\",",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "redis_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "redis_module = types.ModuleType(\"redis\")\nredis_asyncio_module = types.ModuleType(\"redis.asyncio\")\nredis_asyncio_module.Redis = object\nredis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\npsycopg_pool_module = types.ModuleType(\"psycopg_pool\")\npsycopg_pool_module.AsyncConnectionPool = object\nsys.modules.setdefault(\"psycopg_pool\", psycopg_pool_module)\npsycopg_module = types.ModuleType(\"psycopg\")",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "redis_asyncio_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "redis_asyncio_module = types.ModuleType(\"redis.asyncio\")\nredis_asyncio_module.Redis = object\nredis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\npsycopg_pool_module = types.ModuleType(\"psycopg_pool\")\npsycopg_pool_module.AsyncConnectionPool = object\nsys.modules.setdefault(\"psycopg_pool\", psycopg_pool_module)\npsycopg_module = types.ModuleType(\"psycopg\")\npsycopg_rows_module = types.ModuleType(\"psycopg.rows\")",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "redis_asyncio_module.Redis",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "redis_asyncio_module.Redis = object\nredis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\npsycopg_pool_module = types.ModuleType(\"psycopg_pool\")\npsycopg_pool_module.AsyncConnectionPool = object\nsys.modules.setdefault(\"psycopg_pool\", psycopg_pool_module)\npsycopg_module = types.ModuleType(\"psycopg\")\npsycopg_rows_module = types.ModuleType(\"psycopg.rows\")\npsycopg_rows_module.dict_row = object",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "redis_module.asyncio",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "redis_module.asyncio = redis_asyncio_module\nsys.modules.setdefault(\"redis\", redis_module)\nsys.modules.setdefault(\"redis.asyncio\", redis_asyncio_module)\npsycopg_pool_module = types.ModuleType(\"psycopg_pool\")\npsycopg_pool_module.AsyncConnectionPool = object\nsys.modules.setdefault(\"psycopg_pool\", psycopg_pool_module)\npsycopg_module = types.ModuleType(\"psycopg\")\npsycopg_rows_module = types.ModuleType(\"psycopg.rows\")\npsycopg_rows_module.dict_row = object\npsycopg_types_module = types.ModuleType(\"psycopg.types\")",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_pool_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_pool_module = types.ModuleType(\"psycopg_pool\")\npsycopg_pool_module.AsyncConnectionPool = object\nsys.modules.setdefault(\"psycopg_pool\", psycopg_pool_module)\npsycopg_module = types.ModuleType(\"psycopg\")\npsycopg_rows_module = types.ModuleType(\"psycopg.rows\")\npsycopg_rows_module.dict_row = object\npsycopg_types_module = types.ModuleType(\"psycopg.types\")\npsycopg_types_json_module = types.ModuleType(\"psycopg.types.json\")\npsycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_pool_module.AsyncConnectionPool",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_pool_module.AsyncConnectionPool = object\nsys.modules.setdefault(\"psycopg_pool\", psycopg_pool_module)\npsycopg_module = types.ModuleType(\"psycopg\")\npsycopg_rows_module = types.ModuleType(\"psycopg.rows\")\npsycopg_rows_module.dict_row = object\npsycopg_types_module = types.ModuleType(\"psycopg.types\")\npsycopg_types_json_module = types.ModuleType(\"psycopg.types.json\")\npsycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_module = types.ModuleType(\"psycopg\")\npsycopg_rows_module = types.ModuleType(\"psycopg.rows\")\npsycopg_rows_module.dict_row = object\npsycopg_types_module = types.ModuleType(\"psycopg.types\")\npsycopg_types_json_module = types.ModuleType(\"psycopg.types.json\")\npsycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_rows_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_rows_module = types.ModuleType(\"psycopg.rows\")\npsycopg_rows_module.dict_row = object\npsycopg_types_module = types.ModuleType(\"psycopg.types\")\npsycopg_types_json_module = types.ModuleType(\"psycopg.types.json\")\npsycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)\nsys.modules.setdefault(\"psycopg.types\", psycopg_types_module)",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_rows_module.dict_row",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_rows_module.dict_row = object\npsycopg_types_module = types.ModuleType(\"psycopg.types\")\npsycopg_types_json_module = types.ModuleType(\"psycopg.types.json\")\npsycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)\nsys.modules.setdefault(\"psycopg.types\", psycopg_types_module)\nsys.modules.setdefault(\"psycopg.types.json\", psycopg_types_json_module)",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_types_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_types_module = types.ModuleType(\"psycopg.types\")\npsycopg_types_json_module = types.ModuleType(\"psycopg.types.json\")\npsycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)\nsys.modules.setdefault(\"psycopg.types\", psycopg_types_module)\nsys.modules.setdefault(\"psycopg.types.json\", psycopg_types_json_module)\ndocx_module = types.ModuleType(\"docx\")",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_types_json_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_types_json_module = types.ModuleType(\"psycopg.types.json\")\npsycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)\nsys.modules.setdefault(\"psycopg.types\", psycopg_types_module)\nsys.modules.setdefault(\"psycopg.types.json\", psycopg_types_json_module)\ndocx_module = types.ModuleType(\"docx\")\ndocx_module.Document = object",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_types_json_module.Jsonb",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_types_json_module.Jsonb = object\npsycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)\nsys.modules.setdefault(\"psycopg.types\", psycopg_types_module)\nsys.modules.setdefault(\"psycopg.types.json\", psycopg_types_json_module)\ndocx_module = types.ModuleType(\"docx\")\ndocx_module.Document = object\nsys.modules.setdefault(\"docx\", docx_module)",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_module.rows",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_module.rows = psycopg_rows_module\npsycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)\nsys.modules.setdefault(\"psycopg.types\", psycopg_types_module)\nsys.modules.setdefault(\"psycopg.types.json\", psycopg_types_json_module)\ndocx_module = types.ModuleType(\"docx\")\ndocx_module.Document = object\nsys.modules.setdefault(\"docx\", docx_module)\nopenpyxl_module = types.ModuleType(\"openpyxl\")",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "psycopg_module.types",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "psycopg_module.types = psycopg_types_module\nsys.modules.setdefault(\"psycopg\", psycopg_module)\nsys.modules.setdefault(\"psycopg.rows\", psycopg_rows_module)\nsys.modules.setdefault(\"psycopg.types\", psycopg_types_module)\nsys.modules.setdefault(\"psycopg.types.json\", psycopg_types_json_module)\ndocx_module = types.ModuleType(\"docx\")\ndocx_module.Document = object\nsys.modules.setdefault(\"docx\", docx_module)\nopenpyxl_module = types.ModuleType(\"openpyxl\")\nopenpyxl_module.load_workbook = lambda *args, **kwargs: None",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "docx_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "docx_module = types.ModuleType(\"docx\")\ndocx_module.Document = object\nsys.modules.setdefault(\"docx\", docx_module)\nopenpyxl_module = types.ModuleType(\"openpyxl\")\nopenpyxl_module.load_workbook = lambda *args, **kwargs: None\nsys.modules.setdefault(\"openpyxl\", openpyxl_module)\nmultipart_module = types.ModuleType(\"multipart\")\nmultipart_module.__version__ = \"0.0.0\"\nmultipart_submodule = types.ModuleType(\"multipart.multipart\")\nmultipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "docx_module.Document",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "docx_module.Document = object\nsys.modules.setdefault(\"docx\", docx_module)\nopenpyxl_module = types.ModuleType(\"openpyxl\")\nopenpyxl_module.load_workbook = lambda *args, **kwargs: None\nsys.modules.setdefault(\"openpyxl\", openpyxl_module)\nmultipart_module = types.ModuleType(\"multipart\")\nmultipart_module.__version__ = \"0.0.0\"\nmultipart_submodule = types.ModuleType(\"multipart.multipart\")\nmultipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})\nmultipart_module.multipart = multipart_submodule",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "openpyxl_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "openpyxl_module = types.ModuleType(\"openpyxl\")\nopenpyxl_module.load_workbook = lambda *args, **kwargs: None\nsys.modules.setdefault(\"openpyxl\", openpyxl_module)\nmultipart_module = types.ModuleType(\"multipart\")\nmultipart_module.__version__ = \"0.0.0\"\nmultipart_submodule = types.ModuleType(\"multipart.multipart\")\nmultipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})\nmultipart_module.multipart = multipart_submodule\nsys.modules.setdefault(\"multipart\", multipart_module)\nsys.modules.setdefault(\"multipart.multipart\", multipart_submodule)",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "openpyxl_module.load_workbook",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "openpyxl_module.load_workbook = lambda *args, **kwargs: None\nsys.modules.setdefault(\"openpyxl\", openpyxl_module)\nmultipart_module = types.ModuleType(\"multipart\")\nmultipart_module.__version__ = \"0.0.0\"\nmultipart_submodule = types.ModuleType(\"multipart.multipart\")\nmultipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})\nmultipart_module.multipart = multipart_submodule\nsys.modules.setdefault(\"multipart\", multipart_module)\nsys.modules.setdefault(\"multipart.multipart\", multipart_submodule)\nimport jwt",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "multipart_module",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "multipart_module = types.ModuleType(\"multipart\")\nmultipart_module.__version__ = \"0.0.0\"\nmultipart_submodule = types.ModuleType(\"multipart.multipart\")\nmultipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})\nmultipart_module.multipart = multipart_submodule\nsys.modules.setdefault(\"multipart\", multipart_module)\nsys.modules.setdefault(\"multipart.multipart\", multipart_submodule)\nimport jwt\nimport httpx\nfrom fastapi import FastAPI",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "multipart_module.__version__",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "multipart_module.__version__ = \"0.0.0\"\nmultipart_submodule = types.ModuleType(\"multipart.multipart\")\nmultipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})\nmultipart_module.multipart = multipart_submodule\nsys.modules.setdefault(\"multipart\", multipart_module)\nsys.modules.setdefault(\"multipart.multipart\", multipart_submodule)\nimport jwt\nimport httpx\nfrom fastapi import FastAPI\nimport app.api.chat as chat_api",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "multipart_submodule",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "multipart_submodule = types.ModuleType(\"multipart.multipart\")\nmultipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})\nmultipart_module.multipart = multipart_submodule\nsys.modules.setdefault(\"multipart\", multipart_module)\nsys.modules.setdefault(\"multipart.multipart\", multipart_submodule)\nimport jwt\nimport httpx\nfrom fastapi import FastAPI\nimport app.api.chat as chat_api\nimport app.api.ingest as ingest_api",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "multipart_submodule.parse_options_header",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "multipart_submodule.parse_options_header = lambda *args, **kwargs: (b\"\", {})\nmultipart_module.multipart = multipart_submodule\nsys.modules.setdefault(\"multipart\", multipart_module)\nsys.modules.setdefault(\"multipart.multipart\", multipart_submodule)\nimport jwt\nimport httpx\nfrom fastapi import FastAPI\nimport app.api.chat as chat_api\nimport app.api.ingest as ingest_api\nfrom app.api.auth import router as auth_router",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "multipart_module.multipart",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "multipart_module.multipart = multipart_submodule\nsys.modules.setdefault(\"multipart\", multipart_module)\nsys.modules.setdefault(\"multipart.multipart\", multipart_submodule)\nimport jwt\nimport httpx\nfrom fastapi import FastAPI\nimport app.api.chat as chat_api\nimport app.api.ingest as ingest_api\nfrom app.api.auth import router as auth_router\nfrom app.api.chat import router as chat_router",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
+        "documentation": {}
+    },
+    {
+        "label": "INGESTED_CONTENT",
+        "kind": 5,
+        "importPath": "backend.tests.test_auth_ingest_chat_flow",
+        "description": "backend.tests.test_auth_ingest_chat_flow",
+        "peekOfCode": "INGESTED_CONTENT = (\n    \"The SIT Centre for AI offers comprehensive end-to-end services with co-supervision by experts from both SIT and NVIDIA It serves as a gateway for increased AI adoption across industries, better development of students’ competency in AI and a boost in the AI talent pipeline\"\n)\nclass StubSettings:\n    app_name = \"backend-rag-multipurpose\"\n    auth_enabled = True\n    auth_require_https = False\n    auth_jwt_secret = \"test-secret\"\n    auth_jwt_algorithm = \"HS256\"\n    auth_access_token_ttl_seconds = 3600",
+        "detail": "backend.tests.test_auth_ingest_chat_flow",
         "documentation": {}
     },
     {
@@ -3352,6 +3835,15 @@
         "description": "backend.tests.test_health",
         "peekOfCode": "def test_health_endpoint_returns_ok() -> None:\n    client = TestClient(build_test_app())\n    response = client.get(\"/health\")\n    assert response.status_code == 200\n    payload = response.json()\n    assert payload[\"status\"] == \"ok\"\n    assert payload[\"postgres\"][\"ok\"] is True\n    assert payload[\"redis\"][\"ok\"] is True\n    assert payload[\"qdrant\"][\"ok\"] is True\n    assert payload[\"providers\"][\"ollama\"][\"detail\"] == \"reachable\"",
         "detail": "backend.tests.test_health",
+        "documentation": {}
+    },
+    {
+        "label": "test_live_api_flow",
+        "kind": 2,
+        "importPath": "backend.tests.test_live_api_flow",
+        "description": "backend.tests.test_live_api_flow",
+        "peekOfCode": "def test_live_api_flow(live_api_config: dict[str, str | None]) -> None:\n    assert live_api_config[\"base_url\"] is not None\n    assert live_api_config[\"username\"] is not None\n    assert live_api_config[\"password\"] is not None\n    assert live_api_config[\"ingest_text\"] is not None\n    async def run_flow() -> None:\n        base_url = live_api_config[\"base_url\"]\n        async with httpx.AsyncClient(base_url=base_url, timeout=120.0) as client:\n            token_response = await client.post(\n                \"/auth/token\",",
+        "detail": "backend.tests.test_live_api_flow",
         "documentation": {}
     },
     {

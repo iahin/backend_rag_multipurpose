@@ -90,6 +90,14 @@ $env:PYTEST_DISABLE_PLUGIN_AUTOLOAD='1'
 python -m pytest backend/tests
 ```
 
+To run the live ingest/chat API flow with custom inputs, use the PowerShell wrapper:
+
+```powershell
+.\scripts\run-live-api-test.ps1 -Password YOUR_PASSWORD -IngestText "your text here"
+```
+
+You can also override `-BaseUrl`, `-Username`, `-ChatMessage`, `-GenerationProvider`, `-GenerationModel`, `-EmbeddingProfile`, `-EmbeddingProvider`, and `-EmbeddingModel` on the same command.
+
 ## Documentation
 
 - [Architecture](docs/architecture.md)

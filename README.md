@@ -2,9 +2,10 @@
 
 Backend-only RAG chatbot MVP built with FastAPI, PostgreSQL, Qdrant, Redis, and multi-provider generation support across OpenAI, Gemini, and Ollama.
 
-Ownership: Copyright (c) 2026 Isfaque Tuhin. Licensed under the Isfaque Tuhin Attribution License.
-Built by Isfaque Tuhin for portfolio use.
-Attribution links: https://www.linkedin.com/in/iatuhin/ | https://github.com/iahin | shioktech@gmail.com
+## TODO
+
+1. Add a backend user message logger to monitor from misuse and jailbreaking
+2. To including metrics to compute service performance and usage
 
 ## What is implemented
 
@@ -143,3 +144,9 @@ You can also override `-BaseUrl`, `-Username`, `-ChatMessage`, `-GenerationProvi
 - [Troubleshooting Log](docs/troubleshooting-log.md)
 - [Load Testing](loadtest/README.md)
 - [Runbook](docs/runbook.md)
+
+# Ownership
+
+Copyright (c) 2026 Isfaque Tuhin. Licensed under the Isfaque Tuhin Attribution License.
+Built by Isfaque Tuhin for portfolio use.
+Attribution links: https://www.linkedin.com/in/iatuhin/ | https://github.com/iahin | shioktech@gmail.com

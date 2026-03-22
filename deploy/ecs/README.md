@@ -257,6 +257,12 @@ Recommended production edits before registering:
 - Keep the `nginx` env vars aligned with your task networking model.
 - Adjust task `cpu`, `memory`, and `ephemeralStorage` to your workload.
 
+Important:
+
+- `OPENAI_ENABLED=true` does not change the default embedding path by itself.
+- `/ingest/files` and `/ingest/text` use `DEFAULT_EMBEDDING_PROFILE` when the request does not send `embedding_profile`.
+- ECS will keep running the old task definition until you register a new revision and update the service.
+
 Then register:
 
 ```powershell
@@ -271,13 +277,23 @@ Template file:
 
 Replace:
 
+- `snaic_website_cluster` with your ECS cluster name
 - subnet ids
 - security group id
 
-Then create the service:
+Then create or update the service.
+
+If the service does not exist yet:
 
 ```powershell
 aws ecs create-service --cluster snaic_website_cluster --cli-input-json file://deploy/ecs/service-definition.json
+```
+
+If the service already exists, register a new task definition revision and update the running service:
+
+```powershell
+aws ecs register-task-definition --cli-input-json file://deploy/ecs/task-definition.json --query 'taskDefinition.taskDefinitionArn' --output text
+aws ecs update-service --cluster snaic_website_cluster --service backend-rag-multipurpose --task-definition <new-task-definition-arn> --force-new-deployment
 ```
 
 ## Traffic flow

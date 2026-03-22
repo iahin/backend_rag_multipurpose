@@ -222,6 +222,147 @@ Relevant file:
 
 - `deploy/ecs/README.md`
 
+### ECS service stuck at `0 Running`: service was running the wrong task definition revision
+
+Error:
+
+```text
+(service backend-rag-multipurpose) was unable to place a task. Reason: CannotPullContainerError:
+pull image manifest has been retried 7 time(s): failed to resolve ref
+961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/rag-nginx:latest: not found.
+```
+
+Observed service state:
+
+- `desiredCount = 1`
+- `runningCount = 0`
+- `pendingCount = 0`
+- service deployment pointed at `backend-rag-multipurpose:3`
+- revision `3` was inactive/stopped
+- the working task was on `backend-rag-multipurpose:6`
+
+Cause:
+
+- the ECS service was still attached to the wrong task definition revision
+- the service kept trying to start the stale revision instead of the working revision
+- because the service was not pointed at the live revision, it could not keep a running task alive, so the public IP never became reachable
+
+Solution:
+
+- register the current task definition as a new revision
+- update the ECS service to use the live revision
+- force a new deployment so the service stops trying to run the stale revision
+
+Example:
+
+```powershell
+aws --region ap-southeast-1 ecs register-task-definition --cli-input-json file://deploy/ecs/task-definition.json --query 'taskDefinition.taskDefinitionArn' --output text
+aws --region ap-southeast-1 ecs update-service --cluster snaic_website_cluster --service backend-rag-multipurpose --task-definition backend-rag-multipurpose:6 --force-new-deployment
+```
+
+Relevant files:
+
+- `deploy/ecs/task-definition.json`
+- `deploy/ecs/service-definition.json`
+- `deploy/ecs/README.md`
+
+### ECS ingest still defaults to Ollama after switching env vars
+
+Symptoms:
+
+- `POST /ingest/files` returns `embedding_provider: "ollama"`
+- `embedding_model` stays on an Ollama model such as `qwen3-embedding`
+- changing the task definition in the console does not change the live behavior
+
+Cause:
+
+- embedding selection is profile-based
+- the app uses `DEFAULT_EMBEDDING_PROFILE` when the request does not specify `embedding_profile`
+- changing the task definition file alone does not update an already-running ECS service
+
+Checks:
+
+- call `GET /health` and inspect `assumptions.default_embedding_profile`
+- verify the live task revision matches the revision you registered
+- verify the service was updated with `--force-new-deployment`
+
+Solution:
+
+```powershell
+aws --region ap-southeast-1 ecs register-task-definition --cli-input-json file://deploy/ecs/task-definition.json --query 'taskDefinition.taskDefinitionArn' --output text
+aws --region ap-southeast-1 ecs update-service --cluster snaic_website_cluster --service backend-rag-multipurpose --task-definition <new-task-definition-arn> --force-new-deployment
+```
+
+If you want OpenAI to be the default for ingestion, make sure the live task definition sets:
+
+- `DEFAULT_EMBEDDING_PROFILE=openai_small_1536`
+- `EMBEDDING_PROFILES` contains the matching OpenAI profile
+- `OPENAI_API_KEY` is injected into the app container
+
+### ECS health showed Ollama defaults even though the task definition was OpenAI-based
+
+Symptoms:
+
+- `GET /health` reported `default_embedding_provider="ollama"`
+- `GET /health` reported `default_embedding_model="qwen3-embedding"`
+- `GET /health` reported `canonical_embedding_dimension=4096`
+- `/ingest/files` defaulted to `ollama` when no `embedding_profile` was sent
+
+Cause:
+
+- the live app was not running the latest repo state
+- the ECS deployment was still on an older image/task revision
+- the embedding default is controlled by `DEFAULT_EMBEDDING_PROFILE`, not `OPENAI_ENABLED`
+
+Fix:
+
+- push the latest code to the repo
+- rebuild and push the updated backend image
+- confirm the running ECS task definition revision is the one with:
+  - `DEFAULT_EMBEDDING_PROFILE=openai_small_1536`
+  - `EMBEDDING_PROFILES` containing the OpenAI profile
+  - `OLLAMA_ENABLED=false`
+  - `OPENAI_ENABLED=true`
+- redeploy the service with a new task definition revision
+- force a new ECS deployment so the service pulls the latest image and env
+- verify `GET /health` shows:
+  - `default_embedding_provider="openai"`
+  - `default_embedding_model="text-embedding-3-small"`
+  - `canonical_embedding_dimension=1536`
+
+Relevant files:
+
+- `deploy/ecs/task-definition.json`
+- `backend/app/core/config.py`
+- `backend/app/services/embeddings.py`
+
+### ECS task stopped on startup because `POSTGRES_DSN` did not match the Postgres container password
+
+Symptoms:
+
+- the ECS service deployed successfully, then the task stopped
+- the app container could not stay healthy
+- the live task definition showed `POSTGRES_DSN=postgresql://postgres:postgres@127.0.0.1:5432/ragdb`
+- the Postgres container was started with `POSTGRES_PASSWORD=admin`
+
+Cause:
+
+- the app tried to connect to Postgres with the wrong password
+- the database container and app container were configured with different credentials
+- ECS stopped the task after the app failed startup/health checks
+
+Fix:
+
+- update `POSTGRES_DSN` in `deploy/ecs/task-definition.json` to use the same password as the Postgres container
+- in this case, change it to `postgresql://postgres:admin@127.0.0.1:5432/ragdb`
+- register a new task definition revision
+- update the ECS service and force a new deployment
+
+Relevant files:
+
+- `deploy/ecs/task-definition.json`
+- `deploy/ecs/service-definition.json`
+
 ### PostgreSQL init failure: `column cannot have more than 2000 dimensions for ivfflat index`
 
 Error:

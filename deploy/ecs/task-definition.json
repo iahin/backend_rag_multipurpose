@@ -18,7 +18,7 @@
       "name": "nginx",
       "image": "961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-nginx:latest",
       "essential": true,
-      "cpu": 128,
+      "cpu": 64,
       "memoryReservation": 128,
       "environment": [
         { "name": "NGINX_UPSTREAM_HOST", "value": "127.0.0.1" },
@@ -70,7 +70,7 @@
         { "name": "APP_HOST", "value": "0.0.0.0" },
         { "name": "APP_PORT", "value": "8000" },
         { "name": "LOG_LEVEL", "value": "INFO" },
-        { "name": "POSTGRES_DSN", "value": "postgresql://postgres:<CHANGE_ME_DB_PASSWORD>@127.0.0.1:5432/ragdb" },
+        { "name": "POSTGRES_DSN", "value": "postgresql://postgres:admin@127.0.0.1:5432/ragdb" },
         { "name": "REDIS_URL", "value": "redis://127.0.0.1:6379/0" },
         { "name": "QDRANT_URL", "value": "http://127.0.0.1:6333" },
         { "name": "OLLAMA_ENABLED", "value": "false" },
@@ -111,7 +111,7 @@
         {
           "containerName": "redis",
           "condition": "HEALTHY"
-        },
+        }
       ],
       "healthCheck": {
         "command": ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)\" || exit 1"],
@@ -133,7 +133,7 @@
       "name": "postgres",
       "image": "961341555117.dkr.ecr.ap-southeast-1.amazonaws.com/snaic_website/rag-postgres:latest",
       "essential": true,
-      "cpu": 384,
+      "cpu": 256,
       "memoryReservation": 1024,
       "portMappings": [
         {
@@ -174,7 +174,7 @@
       "name": "redis",
       "image": "redis:7.4-alpine",
       "essential": true,
-      "cpu": 128,
+      "cpu": 64,
       "memoryReservation": 256,
       "portMappings": [
         {
@@ -211,7 +211,7 @@
       "name": "qdrant",
       "image": "qdrant/qdrant:v1.14.1",
       "essential": true,
-      "cpu": 128,
+      "cpu": 64,
       "memoryReservation": 512,
       "portMappings": [
         {

@@ -220,6 +220,8 @@ For repeatable redeploys, use the PowerShell helper:
 .\scripts\redeploy-ecs.ps1
 ```
 
+Any change to the chat persona or fallback wording lives in `backend/app/services/prompt_builder.py`, so redeploying ECS must include a fresh `rag-backend` build and a new task definition revision.
+
 It builds the images, pushes them to ECR, registers a new task definition revision, and updates the ECS service.
 
 Important constraint:

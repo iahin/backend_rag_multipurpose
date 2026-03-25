@@ -473,6 +473,33 @@ Relevant files:
 - `deploy/ecs/task-definition.json`
 - `backend/.env.example`
 
+### Chat responses sound too technical or too expressive
+
+Symptoms:
+
+- the assistant sounds robotic, stiff, or overly verbose
+- fallback responses mention the knowledge base or expose internal wording
+- the assistant feels too cheerful or too casual for the product tone
+
+Cause:
+
+- the active backend image was built before the latest persona update
+- the live ECS service is still running an older task definition revision
+- the prompt instructions in `backend/app/services/prompt_builder.py` have not been deployed yet
+
+Solution:
+
+- update `backend/app/services/prompt_builder.py` with the desired tone
+- rebuild and push the `rag-backend` image
+- register a new ECS task definition revision
+- update the ECS service with `--force-new-deployment`
+
+Relevant files:
+
+- `backend/app/services/prompt_builder.py`
+- `deploy/ecs/task-definition.json`
+- `scripts/redeploy-ecs.ps1`
+
 ## Usage
 
 When a new setup or deployment issue appears, add:

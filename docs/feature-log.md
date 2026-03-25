@@ -300,6 +300,17 @@ Changed:
 - ECS task definition includes `NIM_BASE_URL`, `NIM_NO_THINK`, and `RERANK_INVOKE_URL`
 - ECS docs now describe the NIM-based deployment path
 
+## v0.5.9 - 2026-03-25
+
+Chat persona wording refined for a more professional and engaging tone.
+
+Changed:
+
+- assistant prompt now targets a polished, customer-facing voice
+- fallback wording is more natural and less technical when context is missing
+- prompt instructions now discourage overly expressive responses while keeping the assistant warm and approachable
+- prompt-builder tests and user-facing docs were updated to match the new tone
+
 ## Current feature set - 2026-03-22
 
 The repository currently includes:

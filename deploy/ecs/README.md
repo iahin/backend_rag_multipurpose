@@ -392,6 +392,7 @@ client
 - This design preserves the all-in-one task shape, but stateful containers on Fargate remain disposable.
 - Ollama is disabled in the ECS template because local models are not realistic in this deployment shape.
 - If you want Fargate to be production-ready, the next step is: app + nginx on Fargate, PostgreSQL on RDS, Redis on ElastiCache.
+- Chat persona wording lives in `backend/app/services/prompt_builder.py`, so any tone change requires rebuilding and pushing the `rag-backend` image, then registering a new task definition revision and updating the ECS service.
 
 Related troubleshooting:
 

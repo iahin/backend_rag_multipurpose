@@ -227,7 +227,11 @@ class FakeChatService:
         self._corpus = corpus
 
     async def prepare_chat(self, payload: ChatRequest, rate_limit_key: str) -> ChatServiceResult:
-        answer = self._corpus[-1]["content"] if self._corpus else "I couldn't find that in the knowledge base."
+        answer = (
+            self._corpus[-1]["content"]
+            if self._corpus
+            else "I don't have enough information to answer that confidently yet. If you'd like, I can help with a related question."
+        )
         profile = self._resolve_profile(payload.embedding_profile)
         return ChatServiceResult(
             answer=answer,

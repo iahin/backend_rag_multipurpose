@@ -95,7 +95,7 @@ Default chat safety controls are enforced in code and can be overridden through 
 - `which document you used`
 - `which sources did you use`
 
-The assistant is instructed to stay friendly, cheerful, and grounded to retrieved context. When context is missing, it falls back to a safe "I couldn't find that in the knowledge base." response instead of improvising.
+The assistant is instructed to stay friendly, cheerful, and grounded to retrieved context. When context is missing, it falls back to a natural, user-friendly "I don't have enough information to answer that confidently yet. If you'd like, I can help with a related question." response instead of improvising.
 
 ## Ollama runtime mode
 

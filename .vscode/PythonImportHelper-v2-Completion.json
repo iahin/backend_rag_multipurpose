@@ -3665,7 +3665,7 @@
         "kind": 5,
         "importPath": "backend.app.services.prompt_builder",
         "description": "backend.app.services.prompt_builder",
-        "peekOfCode": "SAFE_FALLBACK_TEXT = \"I couldn't find that in the knowledge base.\"\nclass PromptBuilder:\n    def build(\n        self,\n        user_message: str,\n        chat_history: list[ChatMessage],\n        retrieved_chunks: list[RetrievedChunk],\n        max_history_messages: int,\n        max_context_chars: int,\n        max_context_tokens: int,",
+        "peekOfCode": "SAFE_FALLBACK_TEXT = \"I don't have enough information to answer that confidently yet. If you'd like, I can help narrow it down.\"\nclass PromptBuilder:\n    def build(\n        self,\n        user_message: str,\n        chat_history: list[ChatMessage],\n        retrieved_chunks: list[RetrievedChunk],\n        max_history_messages: int,\n        max_context_chars: int,\n        max_context_tokens: int,",
         "detail": "backend.app.services.prompt_builder",
         "documentation": {}
     },
@@ -3782,7 +3782,7 @@
         "kind": 6,
         "importPath": "backend.tests.test_auth_ingest_chat_flow",
         "description": "backend.tests.test_auth_ingest_chat_flow",
-        "peekOfCode": "class FakeChatService:\n    def __init__(self, settings: StubSettings, corpus: list[dict[str, str]]) -> None:\n        self._settings = settings\n        self._corpus = corpus\n    async def prepare_chat(self, payload: ChatRequest, rate_limit_key: str) -> ChatServiceResult:\n        answer = self._corpus[-1][\"content\"] if self._corpus else \"I couldn't find that in the knowledge base.\"\n        profile = self._resolve_profile(payload.embedding_profile)\n        return ChatServiceResult(\n            answer=answer,\n            citations=[",
+        "peekOfCode": "class FakeChatService:\n    def __init__(self, settings: StubSettings, corpus: list[dict[str, str]]) -> None:\n        self._settings = settings\n        self._corpus = corpus\n    async def prepare_chat(self, payload: ChatRequest, rate_limit_key: str) -> ChatServiceResult:\n        answer = (\n            self._corpus[-1][\"content\"]\n            if self._corpus\n            else \"I don't have enough information to answer that confidently yet. If you'd like, I can help with a related question.\"\n        )",
         "detail": "backend.tests.test_auth_ingest_chat_flow",
         "documentation": {}
     },

@@ -27,11 +27,13 @@ def test_prompt_builder_includes_grounding_and_citations() -> None:
         max_chunk_chars=2000,
     )
 
-    assert "friendly, cheerful grounded RAG assistant" in prompt.system_prompt
+    assert "professional, polished, engaging, customer-facing assistant" in prompt.system_prompt
     assert "Answer only from the provided context" in prompt.system_prompt
     assert "Do not name, list, or explain which internal documents or sources were used" in prompt.system_prompt
+    assert "I don't have enough information to answer that confidently yet" in prompt.system_prompt
     assert "Question: What services do we offer?" in prompt.messages[-1].content
-    assert "Do not mention which internal documents, sources, or chunks were used." in prompt.messages[-1].content
+    assert "answer the question in a natural, user-friendly way" in prompt.messages[-1].content
+    assert "without sounding technical or overly expressive" in prompt.messages[-1].content
     assert prompt.citations[0].title == "Service Catalog"
 
 

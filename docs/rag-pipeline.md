@@ -51,7 +51,7 @@ The system prompt explicitly instructs the model to:
 
 - answer only from the provided context
 - not invent services, pricing, experience, or facts
-- say it does not know when context is insufficient
+- respond naturally and briefly when context is insufficient, without sounding technical
 - stay professional, friendly, cheerful, and grounded
 
 ## Fallback behavior
@@ -59,7 +59,7 @@ The system prompt explicitly instructs the model to:
 If vector retrieval returns no chunks above the threshold, the system tries a second-stage lexical lookup over the stored chunk payloads. If that still returns nothing, it falls back to the best available semantic matches for the active embedding profile. Only if no chunks exist at all for that profile does the system return:
 
 ```text
-I couldn't find that in the knowledge base.
+I don't have enough information to answer that confidently yet. If you'd like, I can help with a related question.
 ```
 
 This is returned for:

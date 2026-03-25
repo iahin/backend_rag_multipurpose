@@ -4,8 +4,9 @@ Backend-only RAG chatbot MVP built with FastAPI, PostgreSQL, Qdrant, Redis, and 
 
 ## TODO
 
-1. Add a backend user message logger to monitor from misuse and jailbreaking
-2. To including metrics to compute service performance and usage
+1. To set up endpoint to be able to change system prompt instead of having it hardcoded. This is to be accessed by using admin token
+2. Add a backend user message logger to monitor from misuse and jailbreaking
+3. To including metrics to compute service performance and usage
 
 ## What is implemented
 

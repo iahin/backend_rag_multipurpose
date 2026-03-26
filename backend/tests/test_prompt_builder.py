@@ -1,5 +1,5 @@
 from app.models.schemas import ChatMessage, RetrievedChunk
-from app.services.prompt_builder import PromptBuilder
+from app.services.prompt_builder import DEFAULT_SYSTEM_PROMPT, PromptBuilder
 
 
 def test_prompt_builder_includes_grounding_and_citations() -> None:
@@ -27,13 +27,15 @@ def test_prompt_builder_includes_grounding_and_citations() -> None:
         max_chunk_chars=2000,
     )
 
-    assert "professional, polished, engaging, customer-facing assistant" in prompt.system_prompt
-    assert "Answer only from the provided context" in prompt.system_prompt
-    assert "Do not name, list, or explain which internal documents or sources were used" in prompt.system_prompt
-    assert "I don't have enough information to answer that confidently yet" in prompt.system_prompt
-    assert "Question: What services do we offer?" in prompt.messages[-1].content
-    assert "answer the question in a natural, user-friendly way" in prompt.messages[-1].content
-    assert "without sounding technical or overly expressive" in prompt.messages[-1].content
+    assert prompt.system_prompt == DEFAULT_SYSTEM_PROMPT
+    assert "You are the official SNAIC website assistant." in prompt.system_prompt
+    assert "IDENTITY & CONSTRAINTS" in prompt.system_prompt
+    assert "KNOWLEDGE BASE" in prompt.system_prompt
+    assert "USER QUESTION" in prompt.system_prompt
+    assert "Do not use emoji anywhere in the response." in prompt.system_prompt
+    assert "KNOWLEDGE BASE" in prompt.messages[-1].content
+    assert "<kb>" in prompt.messages[-1].content
+    assert "What services do we offer?" in prompt.messages[-1].content
     assert prompt.citations[0].title == "Service Catalog"
 
 
@@ -75,3 +77,21 @@ def test_prompt_builder_caps_context_budget() -> None:
     assert len(prompt.messages[-1].content) < 2000
     assert "A" * 301 not in prompt.messages[-1].content
     assert "B" * 301 not in prompt.messages[-1].content
+
+
+def test_prompt_builder_uses_custom_system_prompt() -> None:
+    builder = PromptBuilder()
+
+    prompt = builder.build(
+        user_message="Summarize the sources",
+        chat_history=[],
+        retrieved_chunks=[],
+        max_history_messages=8,
+        max_context_chars=800,
+        max_context_tokens=200,
+        max_chunk_chars=300,
+        system_prompt="Custom system prompt",
+    )
+
+    assert prompt.system_prompt == "Custom system prompt"
+    assert prompt.messages[0].content == "Custom system prompt"

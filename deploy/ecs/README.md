@@ -18,7 +18,7 @@ Current ECS template defaults:
 - generation model: `nvidia/llama-3.3-nemotron-super-49b-v1.5`
 - embedding profile: `nim_nemotron_2048`
 - embedding profiles are supplied via `EMBEDDING_PROFILES`
-- reasoning is disabled with `NIM_NO_THINK=true`
+- reasoning visibility is controlled by `CHAT_THINKING_ENABLED`
 - reranking is enabled and reuses `NIM_API_KEY`
 
 Chat safety defaults are enforced by the app and can be overridden in the task definition if needed:
@@ -280,8 +280,7 @@ Recommended production edits before registering:
 
 Important:
 
-- `NIM_ENABLED=true` turns on the NIM provider alias for both generation and embeddings.
-- `NIM_NO_THINK=true` adds the `/no_think` system directive and uses greedy decoding defaults.
+- `CHAT_THINKING_ENABLED=true` allows providers to expose reasoning output when supported.
 - `/ingest/files` and `/ingest/text` use `DEFAULT_EMBEDDING_PROFILE` when the request does not send `embedding_profile`.
 - ECS will keep running the old task definition until you register a new revision and update the service.
 

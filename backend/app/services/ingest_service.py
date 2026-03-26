@@ -5,6 +5,7 @@ from fastapi import UploadFile
 from psycopg_pool import AsyncConnectionPool
 
 from app.core.config import Settings
+from app.core.defaults import EMBEDDING_CACHE_TTL_SECONDS
 from app.core.logging import get_logger
 from app.db.qdrant import QdrantManager
 from app.db.redis import RedisManager
@@ -48,7 +49,7 @@ class IngestService:
             settings,
             cache_service=CacheService(
                 redis_manager.client,
-                ttl_seconds=settings.embedding_cache_ttl_seconds,
+                ttl_seconds=EMBEDDING_CACHE_TTL_SECONDS,
             ),
         )
 
@@ -82,6 +83,7 @@ class IngestService:
                 embedding_model=selection.model,
                 embedding_profile=selection.profile_name,
                 embedding_dimension=selection.dimension,
+                force_reingest=payload.force_reingest,
             )
             results.extend(persisted["results"])
             documents_inserted += persisted["documents_inserted"]
@@ -104,6 +106,7 @@ class IngestService:
         embedding_profile: str | None,
         embedding_provider: str | None,
         embedding_model: str | None,
+        force_reingest: bool,
     ) -> IngestFilesResponse:
         selection = self._embedding_service.resolve_selection(
             embedding_profile,
@@ -138,6 +141,7 @@ class IngestService:
                     embedding_model=selection.model,
                     embedding_profile=selection.profile_name,
                     embedding_dimension=selection.dimension,
+                    force_reingest=force_reingest,
                 )
                 results.extend(persisted["results"])
                 total_chunks_inserted += persisted["chunks_inserted"]
@@ -173,6 +177,7 @@ class IngestService:
         embedding_model: str,
         embedding_profile: str,
         embedding_dimension: int,
+        force_reingest: bool,
     ) -> dict:
         results: list[IngestFileResult] = []
         documents_inserted = 0
@@ -180,6 +185,16 @@ class IngestService:
 
         for document in parsed_file.documents:
             content_hash = self._hash_document(document.content)
+            if force_reingest:
+                existing = await self._document_repository.get_by_content_hash(
+                    content_hash=content_hash,
+                    embedding_provider=embedding_provider,
+                    embedding_model=embedding_model,
+                )
+                if existing is not None:
+                    await self._chunk_repository.delete_for_document(existing.id, embedding_dimension)
+                    await self._document_repository.delete_by_id(existing.id)
+
             document_record, created = await self._document_repository.create_or_get_by_content_hash(
                 document=document,
                 embedding_provider=embedding_provider,

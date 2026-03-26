@@ -58,6 +58,7 @@ from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
 from app.api.ingest import router as ingest_router
 from app.core.config import EmbeddingProfileSpec
+from app.services.assistant_copy import SAFE_FALLBACK_TEXT
 from app.models.schemas import (
     AccessTokenResponse,
     AuthenticatedUser,
@@ -230,9 +231,10 @@ class FakeChatService:
         answer = (
             self._corpus[-1]["content"]
             if self._corpus
-            else "I don't have enough information to answer that confidently yet. If you'd like, I can help with a related question."
+            else SAFE_FALLBACK_TEXT
         )
-        profile = self._resolve_profile(payload.embedding_profile)
+        profile_name = payload.embedding_profile or self._settings.default_embedding_profile
+        profile = self._resolve_profile(profile_name)
         return ChatServiceResult(
             answer=answer,
             citations=[
@@ -248,6 +250,7 @@ class FakeChatService:
             ],
             provider=payload.provider or self._settings.default_llm_provider,
             model=payload.model or self._settings.default_llm_model,
+            embedding_profile=profile_name,
             embedding_provider=profile.provider,
             embedding_model=profile.model,
             used_fallback=False,

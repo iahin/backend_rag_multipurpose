@@ -1,14 +1,23 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
 
 from redis.asyncio import Redis
 
 from app.core.config import Settings
+from app.core.defaults import (
+    CHAT_MAX_RESPONSE_CHARS,
+    CHAT_MAX_RESPONSE_TOKENS,
+    CHAT_MAX_TOP_K,
+    CHAT_MIN_TOP_K,
+    CHAT_REPEATED_PROMPT_LOOKBACK,
+)
 from app.core.rate_limit import RateLimiter
 from app.models.schemas import ChatMessage
+from app.services.assistant_copy import SOURCE_INTROSPECTION_REFUSAL_TEXT
 
 
 class GuardrailService:
@@ -63,7 +72,7 @@ class GuardrailService:
             raise ValueError("Your request matches a blocked pattern. Please rephrase it.")
 
         if self._matches_source_introspection_pattern(normalized):
-            raise ValueError("I cannot help with that.")
+            raise ValueError(SOURCE_INTROSPECTION_REFUSAL_TEXT)
 
         if self._is_repeated_prompt(normalized, recent_user_messages):
             raise ValueError("Repeated or highly similar prompts are blocked. Please rephrase your request.")
@@ -71,7 +80,7 @@ class GuardrailService:
         return normalized
 
     def clamp_top_k(self, requested_top_k: int) -> int:
-        return max(self._settings.chat_min_top_k, min(requested_top_k, self._settings.chat_max_top_k))
+        return max(CHAT_MIN_TOP_K, min(requested_top_k, CHAT_MAX_TOP_K))
 
     def limit_history(self, messages: list[ChatMessage]) -> list[ChatMessage]:
         if self._settings.chat_max_history_messages <= 0:
@@ -79,10 +88,10 @@ class GuardrailService:
         return messages[-self._settings.chat_max_history_messages :]
 
     def truncate_response(self, text: str) -> str:
-        max_chars = self._settings.chat_max_response_chars
-        max_tokens = self._settings.chat_max_response_tokens
+        max_chars = CHAT_MAX_RESPONSE_CHARS
+        max_tokens = CHAT_MAX_RESPONSE_TOKENS
         if len(text) <= max_chars and self._estimate_tokens(text) <= max_tokens:
-            return text
+            return self._strip_terminal_decorations(text)
 
         words = text.split()
         if words:
@@ -90,7 +99,19 @@ class GuardrailService:
         else:
             limited = text[:max_chars]
 
-        return limited[:max_chars]
+        limited = limited[:max_chars].rstrip()
+        if not limited:
+            return ""
+
+        natural = self._trim_to_natural_boundary(limited)
+        if natural:
+            return self._strip_terminal_decorations(natural)
+
+        if len(limited) >= max_chars and max_chars > 3:
+            shortened = limited[: max_chars - 3].rstrip(" ,;:-") + "..."
+            return self._strip_terminal_decorations(shortened)
+
+        return self._strip_terminal_decorations(limited.rstrip(" ,;:-") + "...")
 
     def _matches_blocked_pattern(self, message: str) -> bool:
         return any(pattern.search(message) for pattern in self._blocked_patterns)
@@ -107,7 +128,7 @@ class GuardrailService:
         if identical_count >= 2:
             return True
 
-        lookback = normalized_recent[-self._settings.chat_repeated_prompt_lookback :]
+        lookback = normalized_recent[-CHAT_REPEATED_PROMPT_LOOKBACK:]
         near_matches = 0
         for previous in lookback:
             if len(message) < 24 or len(previous) < 24:
@@ -127,3 +148,39 @@ class GuardrailService:
         if not text:
             return 0
         return len(text.split())
+
+    def _trim_to_natural_boundary(self, text: str) -> str:
+        boundary_chars = ".!?\n"
+        boundary_index = -1
+        for char in boundary_chars:
+            index = text.rfind(char)
+            if index > boundary_index:
+                boundary_index = index
+
+        if boundary_index <= 0:
+            return ""
+
+        trimmed = text[: boundary_index + 1].rstrip()
+        if not trimmed:
+            return ""
+
+        return trimmed
+
+    def _strip_terminal_decorations(self, text: str) -> str:
+        stripped = text.rstrip()
+        while stripped:
+            last_char = stripped[-1]
+            if last_char in {".", "!", "?", ",", ";", ":"}:
+                return stripped
+
+            if last_char in {"\uFE0E", "\uFE0F"}:
+                stripped = stripped[:-1].rstrip()
+                continue
+
+            if unicodedata.category(last_char) in {"So", "Sk"}:
+                stripped = stripped[:-1].rstrip()
+                continue
+
+            break
+
+        return stripped

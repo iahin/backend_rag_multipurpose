@@ -22,6 +22,12 @@ CREATE TABLE IF NOT EXISTS api_keys (
 CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys (user_id);
 CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys (key_prefix);
 
+CREATE TABLE IF NOT EXISTS system_prompt_settings (
+    id SMALLINT PRIMARY KEY CHECK (id = 1),
+    system_prompt TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS documents (
     id UUID PRIMARY KEY,
     content_hash TEXT,

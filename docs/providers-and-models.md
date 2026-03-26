@@ -19,6 +19,11 @@ Relevant request fields:
 - `provider`
 - `model`
 
+Default generation selection can also be profile-based through:
+
+- `DEFAULT_LLM_PROFILE`
+- `GENERATION_PROFILES`
+
 ## Embedding providers
 
 Implemented embedding providers:
@@ -45,34 +50,33 @@ Embedding providers are implemented through named profiles. That means:
 ## Provider config env vars
 
 - `OPENAI_API_KEY`
-- `NIM_ENABLED`
 - `NIM_API_KEY`
-- `NIM_BASE_URL`
-- `NIM_NO_THINK`
 - `GEMINI_API_KEY`
 - `OLLAMA_BASE_URL`
 - `RERANK_ENABLED`
-- `RERANK_INVOKE_URL`
 - `RERANK_MODEL`
-- `OPENAI_ENABLED`
-- `GEMINI_ENABLED`
-- `OLLAMA_ENABLED`
+- `CHAT_THINKING_ENABLED`
 
 ## Defaults
 
-- `DEFAULT_LLM_PROVIDER`
-- `DEFAULT_LLM_MODEL`
+- `DEFAULT_LLM_PROFILE`
+- `GENERATION_PROFILES`
 - `DEFAULT_EMBEDDING_PROFILE`
 - `EMBEDDING_PROFILES`
 
 Current repository defaults:
 
-- `DEFAULT_LLM_PROVIDER=ollama`
-- `DEFAULT_LLM_MODEL=llama3.2`
+- `DEFAULT_LLM_PROFILE=ollama_llama32`
+- `GENERATION_PROFILES={"nim_3super120":{"provider":"nim","model":"nvidia/nemotron-3-super-120b-a12b"},"openai_gpt41_mini":{"provider":"openai","model":"gpt-4.1-mini"},"ollama_llama32":{"provider":"ollama","model":"llama3.2"}}`
 - `DEFAULT_EMBEDDING_PROFILE=ollama_1536`
 - `EMBEDDING_PROFILES={"ollama_1536":{"provider":"ollama","model":"rjmalagon/gte-qwen2-1.5b-instruct-embed-f16","dimension":1536},"openai_small_1536":{"provider":"openai","model":"text-embedding-3-small","dimension":1536}}`
-- `SIMILARITY_THRESHOLD=0.35`
+- `SIMILARITY_THRESHOLD` uses the code default
 - `RERANK_ENABLED=false`
+
+Generation profile registry:
+
+- `DEFAULT_LLM_PROFILE` selects the default generation profile when set
+- `GENERATION_PROFILES` defines named provider/model pairs for chat defaults
 
 Embedding profile registry:
 
@@ -95,10 +99,10 @@ OpenAI uses the fixed public API endpoint internally, so there is no `OPENAI_BAS
 
 NIM is implemented as a dedicated alias so the config stays explicit:
 
-- generation uses `DEFAULT_LLM_PROVIDER=nim`
-- generation and embeddings use `NIM_BASE_URL`
+- generation uses `DEFAULT_LLM_PROFILE=nim_3super120`
+- generation and embeddings use the built-in NVIDIA base URL unless you override it in env
 - embeddings use a profile with `provider="nim"`
-- set `NIM_NO_THINK=true` to prepend `/no_think` and use greedy decoding defaults
+- NIM thinking follows `CHAT_THINKING_ENABLED` and falls back automatically if the model rejects reasoning mode
 
 Relevant NIM model IDs:
 
@@ -176,7 +180,7 @@ Examples:
 
 - missing `OPENAI_API_KEY` returns a clear error
 - missing `GEMINI_API_KEY` returns a clear error
-- missing `NIM_BASE_URL` returns a clear error when `nim` is selected
+- missing `NIM_API_KEY` returns a clear error when the configured NIM endpoint requires one
 - unreachable Ollama returns a clear error
 - missing `NIM_API_KEY` returns a clear error when the configured rerank endpoint requires one
 - unsupported provider names return HTTP `400`

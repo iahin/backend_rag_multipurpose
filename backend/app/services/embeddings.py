@@ -9,6 +9,7 @@ from app.models.schemas import EmbeddingSelection, ProviderName
 from app.services.cache_service import CacheService
 
 logger = get_logger(__name__)
+OPENAI_API_BASE_URL = "https://api.openai.com/v1"
 
 
 class EmbeddingProvider(ABC):

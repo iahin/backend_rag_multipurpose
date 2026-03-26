@@ -18,11 +18,15 @@ Use these rules when you update the app:
   - update `backend/.env.example`
   - update `deploy/ecs/task-definition.json` if ECS should match
   - update `README.md` and `docs/providers-and-models.md`
+  - update `DEFAULT_LLM_PROFILE` and `GENERATION_PROFILES` if you want a short alias to select the model
 - Change chat behavior or reasoning:
   - update `backend/app/services/prompt_builder.py`
   - update `backend/app/services/chat_service.py`
-  - update `backend/app/providers/nim_provider.py` if the change is NIM-specific
-  - update `backend/.env.example` for any new toggle
+  - update `backend/app/services/system_prompt_service.py` if the prompt storage rules change
+- generation behavior uses code defaults; keep `CHAT_TEMPERATURE` and the thinking toggle in env if you want runtime control
+- set `CHAT_THINKING_ENABLED=true` to enable thinking globally across supported providers
+- set `CHAT_SHOW_THINKING_BLOCK=true` to keep the `<thinking>` block in the visible answer when the provider emits one
+- update `backend/.env.example` for any new toggle
 - Change embeddings or retrieval:
   - update `backend/app/services/embeddings.py`
   - update `backend/app/services/retrieval.py`
@@ -145,6 +149,28 @@ curl -X DELETE http://localhost:9010/admin/users/USER_UUID ^
   -H "Authorization: Bearer YOUR_JWT"
 ```
 
+## View or change the system prompt
+
+The assistant system prompt is stored in PostgreSQL and can be updated by an admin with a valid JWT.
+
+View the current prompt:
+
+```bash
+curl http://localhost:9010/admin/system-prompt ^
+  -H "Authorization: Bearer YOUR_JWT"
+```
+
+Update the prompt:
+
+```bash
+curl -X PUT http://localhost:9010/admin/system-prompt ^
+  -H "Authorization: Bearer YOUR_JWT" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"system_prompt\":\"You are a concise, factual assistant.\"}"
+```
+
+The next `/chat` or `/chat/stream` request will use the updated prompt immediately.
+
 ## Pull Ollama models on the host
 
 If you use Ollama, pull the generation and embedding models on the host machine:
@@ -258,18 +284,23 @@ The active profile controls the provider/model/dimension. If you choose a new di
 
 For per-request overrides, send `embedding_profile` on `/ingest/text`, `/ingest/files`, or `/chat` instead of mixing raw provider/model fields.
 
-NIM-specific defaults used by this repository:
+NIM-specific values used by this repository:
 
-- `DEFAULT_LLM_PROVIDER=nim`
-- `DEFAULT_LLM_MODEL=nvidia/llama-3.3-nemotron-super-49b-v1.5`
-- `NIM_BASE_URL=https://integrate.api.nvidia.com/v1`
-- `NIM_NO_THINK=true`
+- `DEFAULT_LLM_PROFILE=nim_3super120`
+- `GENERATION_PROFILES` contains the `nim_3super120` profile
 - `DEFAULT_EMBEDDING_PROFILE=nim_nemotron_2048`
 - `EMBEDDING_PROFILES` contains the `nim_nemotron_2048` profile
 - `RERANK_ENABLED=true`
-- `RERANK_INVOKE_URL` points at NVIDIA reranking
+- `NIM_BASE_URL` defaults to the NVIDIA integrate endpoint in code, and `RERANK_INVOKE_URL` can be written into `backend/.env` with `scripts/sync-provider-urls.ps1`
+- `CHAT_THINKING_ENABLED` controls thinking globally, and the NIM provider adds the reasoning hint internally when supported
 
-When using NIM, you do not need to pull local models on the host or inside Docker because the app talks to NVIDIA-hosted endpoints through `NIM_BASE_URL`.
+When using NIM, you do not need to pull local models on the host or inside Docker because the app talks to NVIDIA-hosted endpoints through the URL values stored in `backend/.env`.
+
+If you want `backend/.env` to be rewritten with explicit URL values, run:
+
+```powershell
+.\scripts\sync-provider-urls.ps1
+```
 
 ## Reset the backend state
 
@@ -337,6 +368,20 @@ If you switch to NIM, expect:
 - provider: `nim`
 - model: `nvidia/llama-nemotron-embed-1b-v2`
 - dimension: `2048`
+
+## Provider selection
+
+The app uses `DEFAULT_LLM_PROFILE` plus `GENERATION_PROFILES` for the default chat model.
+
+- `DEFAULT_LLM_PROFILE` selects the active generation profile
+- `GENERATION_PROFILES` maps the profile name to a provider/model pair
+
+Provider-specific credentials and endpoints still need to be present when the chosen provider requires them.
+
+Thinking is controlled by one switch:
+
+- `CHAT_THINKING_ENABLED` enables thinking globally when the selected model supports it
+- if a provider rejects the thinking request, the app retries once without thinking so generation still succeeds
 
 ### Chat returns fallback unexpectedly
 

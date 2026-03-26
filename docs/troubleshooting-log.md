@@ -260,6 +260,24 @@ aws --region ap-southeast-1 ecs register-task-definition --cli-input-json file:/
 aws --region ap-southeast-1 ecs update-service --cluster snaic_website_cluster --service backend-rag-multipurpose --task-definition backend-rag-multipurpose:6 --force-new-deployment
 ```
 
+### Thinking block still appeared in chat output when it should have been hidden
+
+Symptom:
+
+- chat responses sometimes surfaced `<think>` or `<thinking>` text even when `CHAT_SHOW_THINKING_BLOCK=false`
+- the issue showed up most clearly on streamed NIM output
+
+Cause:
+
+- the stream filter only handled one thinking-tag variant in part of the code path
+- provider output could include either `<think>` or `<thinking>`, so the hidden path was not fully normalized
+
+Solution:
+
+- strip both `<think>` and `<thinking>` blocks in the chat formatting layer
+- apply the same tag handling in provider stream filters
+- keep `CHAT_SHOW_THINKING_BLOCK` separate from `CHAT_THINKING_ENABLED` so reasoning can be enabled without forcing the block visible
+
 Relevant files:
 
 - `deploy/ecs/task-definition.json`
@@ -312,7 +330,7 @@ Cause:
 
 - the live app was not running the latest repo state
 - the ECS deployment was still on an older image/task revision
-- the embedding default is controlled by `DEFAULT_EMBEDDING_PROFILE`, not `OPENAI_ENABLED`
+- the embedding default is controlled by `DEFAULT_EMBEDDING_PROFILE`
 
 Fix:
 
@@ -321,8 +339,6 @@ Fix:
 - confirm the running ECS task definition revision is the one with:
   - `DEFAULT_EMBEDDING_PROFILE=openai_small_1536`
   - `EMBEDDING_PROFILES` containing the OpenAI profile
-  - `OLLAMA_ENABLED=false`
-  - `OPENAI_ENABLED=true`
 - redeploy the service with a new task definition revision
 - force a new ECS deployment so the service pulls the latest image and env
 - verify `GET /health` shows:
@@ -405,7 +421,7 @@ Symptoms:
 Cause:
 
 - the live ECS service is still running an older task definition revision
-- `DEFAULT_LLM_PROVIDER`, `NIM_BASE_URL`, or `NIM_API_KEY` were updated in the file but not in the running service
+- `DEFAULT_LLM_PROFILE` or `NIM_API_KEY` were updated in the file but not in the running service
 - ECS has not been forced to deploy the new revision
 
 Solution:
@@ -413,7 +429,7 @@ Solution:
 - update `deploy/ecs/task-definition.json` with the NIM defaults
 - register a new task definition revision
 - update the ECS service with `--force-new-deployment`
-- verify `GET /health` shows `default_generation_provider="nim"`
+- verify `GET /health` shows the expected `default_generation_profile` and resolved provider/model
 
 Relevant files:
 
@@ -430,14 +446,14 @@ Symptoms:
 
 Cause:
 
-- `NIM_NO_THINK` is false or missing
-- the live ECS task or local `.env` does not include the reasoning-off toggle
+- `CHAT_THINKING_ENABLED` is enabled for the active provider
+- the live ECS task or local `.env` is using a model that emits `<think>` or `<thinking>` content
 
 Solution:
 
-- set `NIM_NO_THINK=true`
+- set `CHAT_THINKING_ENABLED=false` if you want no visible reasoning output
 - rebuild or redeploy the app
-- confirm the live task definition includes `NIM_NO_THINK=true`
+- confirm the live task definition includes the current chat thinking flag value
 
 Relevant files:
 
@@ -456,14 +472,14 @@ Symptoms:
 
 Cause:
 
-- the rerank endpoint is configured separately with `RERANK_INVOKE_URL`
+- the rerank endpoint value was never written into `backend/.env`
 - the NVIDIA API key is missing from `NIM_API_KEY`
 - the rerank URL is wrong or unreachable
 
 Solution:
 
 - ensure `RERANK_ENABLED=true`
-- set `RERANK_INVOKE_URL` to NVIDIA’s rerank endpoint
+- run `.\scripts\sync-provider-urls.ps1` if you want an explicit `RERANK_INVOKE_URL` in `backend/.env`
 - reuse `NIM_API_KEY` for the reranker
 - confirm the endpoint responds outside the app first
 
@@ -499,6 +515,177 @@ Relevant files:
 - `backend/app/services/prompt_builder.py`
 - `deploy/ecs/task-definition.json`
 - `scripts/redeploy-ecs.ps1`
+
+### Default prompt existed in more than one place
+
+Symptoms:
+
+- the default system prompt was defined in `prompt_builder.py`
+- the same prompt text also existed in the SQL schema seed
+- prompt updates required editing more than one file
+
+Cause:
+
+- the default prompt had been copied into startup SQL instead of being imported from the code constant
+
+Solution:
+
+- keep the canonical default prompt only in `backend/app/services/prompt_builder.py`
+- seed the database from the startup service using that imported constant
+- remove the duplicated prompt text from `backend/app/db/schema.sql`
+
+Relevant files:
+
+- `backend/app/services/prompt_builder.py`
+- `backend/app/services/system_prompt_service.py`
+- `backend/app/db/schema.sql`
+
+### DOCX ingest missed collaboration steps because heading-only sections were dropped
+
+Symptoms:
+
+- chat responses only retrieved the introductory sections of the uploaded DOCX
+- the collaboration steps existed in the source file but did not appear in the ingested chunks
+- retrieval favored older or unrelated chunks instead of the intended section
+
+Cause:
+
+- the DOCX parser skipped sections that had a heading but little or no body text under that heading
+- heading-only sections were not retained, so the ingestion pipeline lost important content during normalization
+
+Solution:
+
+- update the DOCX parser to keep plain-text headings and heading-only sections
+- re-ingest the document so the database and vector store contain the corrected chunks
+
+Relevant files:
+
+- `backend/app/parsers/docx_parser.py`
+- `backend/tests/test_docx_parser.py`
+
+### Duplicate ingest reused stale chunks instead of replacing the document
+
+Symptoms:
+
+- `POST /ingest/files` reported `deduplicated: true`
+- `chunks_created: 0` even after uploading the DOCX again
+- chat kept retrieving an older chunk set with the wrong content
+
+Cause:
+
+- the content hash matched an existing stored document
+- the ingest path treated the upload as a duplicate and skipped chunking
+- the stale document record remained active in PostgreSQL and Qdrant
+
+Solution:
+
+- use `force_reingest=true` when uploading a file that should replace the stored version
+- delete the existing document and its chunk embeddings before inserting the fresh one
+
+Relevant files:
+
+- `backend/app/services/ingest_service.py`
+- `backend/app/db/repositories/documents.py`
+- `backend/app/db/repositories/chunks.py`
+- `scripts/test-login-chat.py`
+
+### NIM stream crashed on empty provider events
+
+Symptoms:
+
+- `/chat/stream` failed with `IndexError: list index out of range`
+- the failure happened while streaming from NVIDIA NIM
+- normal `/chat` still worked
+
+Cause:
+
+- the NIM streaming parser assumed every SSE event had `choices[0]`
+- NIM sometimes emits empty or non-content events during the stream
+
+Solution:
+
+- skip empty events before reading the first choice
+- continue streaming until a real content delta arrives
+
+Relevant files:
+
+- `backend/app/providers/nim_provider.py`
+- `backend/app/api/chat.py`
+
+### Provider response handling failed when content was null
+
+Symptoms:
+
+- `/chat` returned `400 Bad Request`
+- the backend exception mentioned `'NoneType' object has no attribute 'lower'`
+- the failure appeared after a provider response with a null content field
+
+Cause:
+
+- the response formatting path assumed completion text was always a string
+- a provider returned `None` for content, which reached a lowercase check
+
+Solution:
+
+- normalize provider content to an empty string before formatting
+- make the chat service tolerate missing completion text
+
+Relevant files:
+
+- `backend/app/services/chat_service.py`
+- `backend/app/providers/nim_provider.py`
+
+### NIM chat or rerank fails because the URL values were never written into `.env`
+
+Symptoms:
+
+- NIM generation returns a missing-base-url error
+- reranking is disabled or errors because `RERANK_INVOKE_URL` is empty and the code default is not being used
+- local `.env` no longer contains the NVIDIA URL values after manual cleanup
+
+Cause:
+
+- the runtime config uses built-in defaults unless you write explicit URL values into `backend/.env`
+- `scripts/sync-provider-urls.ps1` was not run after changing `RERANK_MODEL`
+- the app is using an older `.env` that no longer has the explicit NIM URL entries
+
+Solution:
+
+- run `.\scripts\sync-provider-urls.ps1`
+- confirm it writes `NIM_BASE_URL=https://integrate.api.nvidia.com/v1`
+- confirm it writes `RERANK_INVOKE_URL=https://ai.api.nvidia.com/v1/retrieval/nvidia/<RERANK_MODEL>/reranking`
+- restart the app container or reload the process so it picks up the updated `.env`
+
+Relevant files:
+
+- `scripts/sync-provider-urls.ps1`
+- `backend/.env`
+- `backend/app/core/config.py`
+- `backend/app/services/rerank.py`
+
+### Chat default profile fails because the named generation profile is missing
+
+Symptoms:
+
+- `/chat` returns an error about an unknown default generation profile
+- `GET /health` or startup assumptions show the wrong provider/model pair
+- updating `DEFAULT_LLM_PROFILE` without adding a matching profile entry breaks startup or chat routing
+
+Cause:
+
+- `DEFAULT_LLM_PROFILE` points at a name that does not exist in `GENERATION_PROFILES`
+- the app falls back only when no profile is configured at all
+
+Solution:
+
+- make sure `DEFAULT_LLM_PROFILE` exactly matches a key in `GENERATION_PROFILES`
+- restart the app after updating `.env`
+
+Relevant files:
+
+- `backend/app/core/config.py`
+- `backend/.env`
+- `backend/.env.example`
 
 ## Usage
 

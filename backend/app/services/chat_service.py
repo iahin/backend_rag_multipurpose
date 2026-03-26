@@ -1,6 +1,7 @@
 from app.core.config import Settings
 from app.db.qdrant import QdrantManager
 from app.db.redis import RedisManager
+from app.core.defaults import CHAT_MAX_CONTEXT_CHUNK_CHARS, SESSION_STORAGE_ENABLED, SESSION_TTL_SECONDS
 from app.models.schemas import (
     ChatMessage,
     ChatRequest,
@@ -11,9 +12,12 @@ from app.models.schemas import (
 from app.providers.registry import ProviderRegistry
 from app.services.guardrails import GuardrailService
 from app.services.embeddings import EmbeddingService
-from app.services.prompt_builder import PromptBuilder, SAFE_FALLBACK_TEXT
+from app.services.assistant_copy import SAFE_FALLBACK_TEXT
+from app.services.prompt_builder import PromptBuilder
+from app.services.system_prompt_service import SystemPromptService
 from app.services.retrieval import RetrievalService
 from app.services.session_service import SessionService
+import re
 
 
 class ChatService:
@@ -23,17 +27,19 @@ class ChatService:
         qdrant_manager: QdrantManager,
         redis_manager: RedisManager,
         provider_registry: ProviderRegistry,
+        system_prompt_service: SystemPromptService,
     ) -> None:
         self._settings = settings
         self._providers = provider_registry
         self._embedding_service = EmbeddingService(settings)
         self._retrieval_service = RetrievalService(settings, qdrant_manager, redis_manager)
         self._prompt_builder = PromptBuilder()
+        self._system_prompt_service = system_prompt_service
         self._guardrails = GuardrailService(settings, redis_manager.client)
         self._session_service = SessionService(
             redis_client=redis_manager.client,
-            ttl_seconds=settings.session_ttl_seconds,
-            enabled=settings.session_storage_enabled,
+            ttl_seconds=SESSION_TTL_SECONDS,
+            enabled=SESSION_STORAGE_ENABLED,
             max_messages=settings.max_session_messages,
         )
 
@@ -47,9 +53,11 @@ class ChatService:
         if prepared.used_fallback:
             return ChatServiceResult(
                 answer=prepared.fallback_text,
+                thinking=None,
                 citations=[],
                 provider=prepared.provider,
                 model=prepared.model,
+                embedding_profile=prepared.embedding_profile,
                 embedding_provider=prepared.embedding_provider,
                 embedding_model=prepared.embedding_model,
                 used_fallback=True,
@@ -60,7 +68,9 @@ class ChatService:
             messages=prepared.prompt_messages,
             model=prepared.model,
         )
-        answer = self._guardrails.truncate_response(completion.text)
+        completion_text = completion.text or ""
+        completion_thinking = completion.thinking or None
+        answer = self.finalize_answer(self._format_answer(completion_text, completion_thinking))
 
         await self._session_service.append_messages(
             prepared.session_id,
@@ -72,9 +82,11 @@ class ChatService:
 
         return ChatServiceResult(
             answer=answer,
+            thinking=completion_thinking if self._settings.chat_thinking_enabled else None,
             citations=prepared.citations,
             provider=prepared.provider,
             model=prepared.model,
+            embedding_profile=prepared.embedding_profile,
             embedding_provider=prepared.embedding_provider,
             embedding_model=prepared.embedding_model,
             used_fallback=False,
@@ -92,9 +104,12 @@ class ChatService:
             return ChatStreamState(
                 provider=prepared.provider,
                 model=prepared.model,
+                embedding_profile=prepared.embedding_profile,
                 embedding_provider=prepared.embedding_provider,
                 embedding_model=prepared.embedding_model,
                 citations=[],
+                retrieved_chunks=[],
+                thinking=None,
                 stream=None,
                 used_fallback=True,
                 fallback_text=prepared.fallback_text,
@@ -110,9 +125,12 @@ class ChatService:
         return ChatStreamState(
             provider=prepared.provider,
             model=prepared.model,
+            embedding_profile=prepared.embedding_profile,
             embedding_provider=prepared.embedding_provider,
             embedding_model=prepared.embedding_model,
             citations=prepared.citations,
+            retrieved_chunks=prepared.retrieved_chunks,
+            thinking=None,
             stream=stream,
             used_fallback=False,
             fallback_text="",
@@ -135,6 +153,9 @@ class ChatService:
                 ChatMessage(role="assistant", content=answer),
             ],
         )
+
+    def finalize_answer(self, text: str) -> str:
+        return self._guardrails.truncate_response(text)
 
     async def _prepare_chat_context(
         self,
@@ -171,9 +192,11 @@ class ChatService:
             return _PreparedChatContext(
                 provider=generation.provider,
                 model=generation.model,
+                embedding_profile=embedding_selection.profile_name,
                 embedding_provider=embedding_selection.provider,
                 embedding_model=embedding_selection.model,
                 prompt_messages=[],
+                thinking=None,
                 citations=[],
                 used_fallback=True,
                 fallback_text=SAFE_FALLBACK_TEXT,
@@ -182,6 +205,7 @@ class ChatService:
                 retrieved_chunks=[],
             )
 
+        prompt_config = await self._system_prompt_service.get_system_prompt()
         prompt_context = self._prompt_builder.build(
             user_message=normalized_message,
             chat_history=history,
@@ -189,23 +213,23 @@ class ChatService:
             max_history_messages=self._settings.chat_max_history_messages,
             max_context_chars=self._settings.chat_max_context_chars,
             max_context_tokens=self._settings.chat_max_context_tokens,
-            max_chunk_chars=self._settings.chat_max_context_chunk_chars,
-            disable_reasoning=(
-                generation.provider == "nim" and self._settings.nim_no_think
-            ),
+            max_chunk_chars=CHAT_MAX_CONTEXT_CHUNK_CHARS,
+            system_prompt=prompt_config.system_prompt,
         )
         return _PreparedChatContext(
             provider=generation.provider,
             model=generation.model,
+            embedding_profile=embedding_selection.profile_name,
             embedding_provider=embedding_selection.provider,
             embedding_model=embedding_selection.model,
             prompt_messages=prompt_context.messages,
+            retrieved_chunks=retrieved_chunks,
+            thinking=None,
             citations=prompt_context.citations,
             used_fallback=False,
             fallback_text="",
             session_id=payload.session_id,
             user_message=normalized_message,
-            retrieved_chunks=retrieved_chunks,
         )
 
     def _resolve_generation_selection(
@@ -213,13 +237,50 @@ class ChatService:
         provider: str | None,
         model: str | None,
     ) -> GenerationSelection:
-        resolved_provider = provider or self._settings.default_llm_provider
-        resolved_model = model or self._settings.default_llm_model
+        resolved_provider = provider
+        resolved_model = model
+
+        if resolved_provider is None or resolved_model is None:
+            default_provider = getattr(self._settings, "default_generation_provider", None)
+            default_model = getattr(self._settings, "default_generation_model", None)
+            if resolved_provider is None:
+                resolved_provider = default_provider
+            if resolved_model is None:
+                resolved_model = default_model
+
+        if resolved_provider is None or resolved_model is None:
+            raise ValueError("DEFAULT_LLM_PROFILE is required")
 
         if resolved_provider not in self._providers.supported_provider_names():
             raise ValueError(f"Unsupported generation provider '{resolved_provider}'")
 
         return GenerationSelection(provider=resolved_provider, model=resolved_model)
+
+    def _format_answer(self, text: str | None, thinking: str | None) -> str:
+        text = text or ""
+        if self._settings.chat_show_thinking_block:
+            if thinking and not self._contains_thinking_block(text):
+                return f"<thinking>\n{thinking}\n</thinking>\n\n{text}".strip()
+            return text
+
+        return self._strip_thinking_blocks(text)
+
+    def _contains_thinking_block(self, text: str | None) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        return "<think>" in lowered or "<thinking>" in lowered
+
+    def _strip_thinking_blocks(self, text: str | None) -> str:
+        if not text:
+            return ""
+        stripped = re.sub(
+            r"<(?P<tag>think|thinking)>.*?</(?P=tag)>",
+            "",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        return re.sub(r"\n{3,}", "\n\n", stripped).strip()
 
 
 class _PreparedChatContext:
@@ -227,24 +288,28 @@ class _PreparedChatContext:
         self,
         provider: str,
         model: str,
+        embedding_profile: str,
         embedding_provider: str,
         embedding_model: str,
         prompt_messages: list[ChatMessage],
+        retrieved_chunks: list,
+        thinking: str | None,
         citations: list,
         used_fallback: bool,
         fallback_text: str,
         session_id: str | None,
         user_message: str,
-        retrieved_chunks: list,
     ) -> None:
         self.provider = provider
         self.model = model
+        self.embedding_profile = embedding_profile
         self.embedding_provider = embedding_provider
         self.embedding_model = embedding_model
         self.prompt_messages = prompt_messages
+        self.retrieved_chunks = retrieved_chunks
+        self.thinking = thinking
         self.citations = citations
         self.used_fallback = used_fallback
         self.fallback_text = fallback_text
         self.session_id = session_id
         self.user_message = user_message
-        self.retrieved_chunks = retrieved_chunks

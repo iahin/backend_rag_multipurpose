@@ -31,12 +31,15 @@ class DocxParser(FileParser):
 
             paragraphs.append(text)
             style_name = paragraph.style.name.lower() if paragraph.style and paragraph.style.name else ""
+            looks_like_heading = self._looks_like_heading(text)
 
-            if "heading" in style_name:
+            if "heading" in style_name or looks_like_heading:
                 if section_buffer:
                     sections.append(
                         {"heading": current_heading, "content": "\n".join(section_buffer).strip()}
                     )
+                elif current_heading != "Introduction":
+                    sections.append({"heading": current_heading, "content": current_heading})
                 current_heading = text
                 section_buffer = []
             else:
@@ -63,3 +66,27 @@ class DocxParser(FileParser):
         )
 
         return ParsedFile(filename=filename, detected_type="docx", documents=[document])
+
+    def _looks_like_heading(self, text: str) -> bool:
+        normalized = text.strip()
+        if not normalized or len(normalized) > 80:
+            return False
+        if normalized.endswith((".", ":", ";", ",")):
+            return False
+
+        words = normalized.split()
+        if not words or len(words) > 8:
+            return False
+
+        if normalized.startswith("Step "):
+            return True
+
+        alpha_chars = [char for char in normalized if char.isalpha()]
+        if alpha_chars and all(char.isupper() for char in alpha_chars):
+            return True
+
+        title_like_words = sum(1 for word in words if word[:1].isupper())
+        if title_like_words >= max(1, len(words) - 1):
+            return True
+
+        return False

@@ -92,6 +92,7 @@ async def ingest_files(
     embedding_profile: str | None = Form(default=None),
     embedding_provider: str | None = Form(default=None),
     embedding_model: str | None = Form(default=None),
+    force_reingest: bool = Form(default=False),
 ) -> IngestFilesResponse:
     service = _build_ingest_service(request)
     normalized_source_type = _normalize_optional_form_value(source_type)
@@ -122,4 +123,5 @@ async def ingest_files(
         embedding_profile=_normalize_optional_form_value(embedding_profile),
         embedding_provider=normalized_embedding_provider,
         embedding_model=normalized_embedding_model,
+        force_reingest=force_reingest,
     )

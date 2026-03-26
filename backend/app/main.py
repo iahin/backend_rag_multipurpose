@@ -11,6 +11,7 @@ from app.db.postgres import PostgresManager
 from app.db.redis import RedisManager
 from app.providers.registry import ProviderRegistry
 from app.services.auth_service import AuthService
+from app.services.system_prompt_service import SystemPromptService
 
 
 @asynccontextmanager
@@ -24,6 +25,7 @@ async def lifespan(app: FastAPI):
     qdrant = QdrantManager(settings)
     providers = ProviderRegistry.from_settings(settings)
     auth_service = AuthService(settings, postgres.pool)
+    prompt_service = SystemPromptService(postgres.pool)
 
     app.state.settings = settings
     app.state.postgres = postgres
@@ -31,10 +33,12 @@ async def lifespan(app: FastAPI):
     app.state.qdrant = qdrant
     app.state.providers = providers
     app.state.auth_service = auth_service
+    app.state.prompt_service = prompt_service
 
     await postgres.connect()
     await redis.connect()
     await _wait_for_qdrant(qdrant, settings.default_embedding_spec.dimension)
+    await prompt_service.ensure_default_system_prompt()
     await auth_service.ensure_bootstrap_admin()
 
     logger.info("application_startup_complete")

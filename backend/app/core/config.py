@@ -6,6 +6,16 @@ from pydantic import BaseModel, Field
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.defaults import (
+    CHAT_MAX_RESPONSE_CHARS,
+    CHAT_MAX_RESPONSE_TOKENS,
+    CHAT_FREQUENCY_PENALTY,
+    CHAT_PRESENCE_PENALTY,
+    NIM_BASE_URL,
+    CHAT_TOP_P,
+    SESSION_STORAGE_ENABLED,
+)
+
 ProviderName = Literal["openai", "gemini", "ollama", "nim"]
 
 
@@ -13,6 +23,11 @@ class EmbeddingProfileSpec(BaseModel):
     provider: ProviderName
     model: str
     dimension: int
+
+
+class GenerationProfileSpec(BaseModel):
+    provider: ProviderName
+    model: str
 
 
 class Settings(BaseSettings):
@@ -41,17 +56,12 @@ class Settings(BaseSettings):
     qdrant_api_key: str | None = Field(default=None)
     qdrant_collection_prefix: str = Field(default="rag_chunks")
 
-    openai_enabled: bool = Field(default=False)
     openai_api_key: str | None = Field(default=None)
-    nim_enabled: bool = Field(default=False)
     nim_api_key: str | None = Field(default=None)
-    nim_base_url: str = Field(default="")
-    nim_no_think: bool = Field(default=True)
+    nim_base_url: str = Field(default=NIM_BASE_URL)
 
-    gemini_enabled: bool = Field(default=False)
     gemini_api_key: str | None = Field(default=None)
 
-    ollama_enabled: bool = Field(default=True)
     ollama_base_url: str = Field(default="http://localhost:11434")
     ollama_health_timeout_seconds: float = Field(default=3.0)
 
@@ -61,8 +71,8 @@ class Settings(BaseSettings):
     rerank_max_candidates: int = Field(default=12)
     rerank_min_candidates: int = Field(default=2)
 
-    default_llm_provider: ProviderName = Field(default="ollama")
-    default_llm_model: str = Field(default="llama3.2")
+    default_llm_profile: str = Field(default="")
+    generation_profiles: dict[str, GenerationProfileSpec] = Field(default_factory=dict)
     default_embedding_profile: str = Field(default="")
     embedding_profiles: dict[str, EmbeddingProfileSpec] = Field(default_factory=dict)
     chunk_size: int = Field(default=1000)
@@ -77,18 +87,12 @@ class Settings(BaseSettings):
     chat_max_message_chars: int = Field(default=4000)
     chat_max_input_tokens: int = Field(default=1000)
     chat_max_history_messages: int = Field(default=8)
-    chat_repeated_prompt_lookback: int = Field(default=5)
     chat_max_context_chars: int = Field(default=8000)
     chat_max_context_tokens: int = Field(default=2500)
-    chat_max_context_chunk_chars: int = Field(default=1800)
-    chat_min_top_k: int = Field(default=3)
-    chat_max_top_k: int = Field(default=8)
-    chat_max_response_chars: int = Field(default=2000)
-    chat_max_response_tokens: int = Field(default=700)
+    chat_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    chat_thinking_enabled: bool = Field(default=False)
+    chat_show_thinking_block: bool = Field(default=False)
     retrieval_cache_ttl_seconds: int = Field(default=120)
-    embedding_cache_ttl_seconds: int = Field(default=3600)
-    session_ttl_seconds: int = Field(default=1800)
-    session_storage_enabled: bool = Field(default=False)
     auth_enabled: bool = Field(default=True)
     auth_jwt_secret: str = Field(default="change-me-immediately")
     auth_jwt_algorithm: str = Field(default="HS256")
@@ -102,6 +106,25 @@ class Settings(BaseSettings):
     def normalize_default_embedding_profile(cls, value: object) -> object:
         if isinstance(value, str):
             return value.strip()
+        return value
+
+    @field_validator("default_llm_profile", mode="before")
+    @classmethod
+    def normalize_default_llm_profile(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+        return value
+
+    @field_validator("generation_profiles", mode="before")
+    @classmethod
+    def parse_generation_profiles(cls, value: object) -> object:
+        if value in (None, ""):
+            return {}
+        if isinstance(value, str):
+            parsed = json.loads(value)
+            if not isinstance(parsed, dict):
+                raise ValueError("GENERATION_PROFILES must decode to an object")
+            return parsed
         return value
 
     @field_validator("embedding_profiles", mode="before")
@@ -139,13 +162,33 @@ class Settings(BaseSettings):
     def canonical_embedding_dimension(self) -> int:
         return self.default_embedding_spec.dimension
 
+    @property
+    def default_generation_spec(self) -> GenerationProfileSpec:
+        if not self.default_llm_profile:
+            raise ValueError("DEFAULT_LLM_PROFILE is required")
+        profile = self.generation_profiles.get(self.default_llm_profile)
+        if profile is None:
+            raise ValueError(f"Unknown default generation profile '{self.default_llm_profile}'")
+        return profile
+
+    @property
+    def default_generation_profile(self) -> str:
+        return self.default_llm_profile
+
+    @property
+    def default_generation_provider(self) -> ProviderName:
+        return self.default_generation_spec.provider
+
+    @property
+    def default_generation_model(self) -> str:
+        return self.default_generation_spec.model
+
     def phase_one_assumptions(self) -> dict[str, object]:
         return {
-            "default_generation_provider": self.default_llm_provider,
-            "default_generation_model": self.default_llm_model,
-            "nim_enabled": self.nim_enabled,
+            "default_generation_profile": self.default_generation_profile,
+            "default_generation_provider": self.default_generation_provider,
+            "default_generation_model": self.default_generation_model,
             "nim_base_url": self.nim_base_url,
-            "nim_no_think": self.nim_no_think,
             "rerank_enabled": self.rerank_enabled,
             "rerank_invoke_url": self.rerank_invoke_url,
             "rerank_model": self.rerank_model,
@@ -160,6 +203,9 @@ class Settings(BaseSettings):
                 "to a configured profile whose dimension matches the deployed index."
             ),
             "canonical_embedding_dimension": self.canonical_embedding_dimension,
+            "configured_generation_profiles": {
+                name: profile.model_dump() for name, profile in self.generation_profiles.items()
+            },
             "configured_embedding_profiles": {
                 name: profile.model_dump() for name, profile in self.embedding_profiles.items()
             },
@@ -170,9 +216,15 @@ class Settings(BaseSettings):
             "chat_max_input_tokens": self.chat_max_input_tokens,
             "chat_max_context_chars": self.chat_max_context_chars,
             "chat_max_context_tokens": self.chat_max_context_tokens,
-            "chat_max_response_chars": self.chat_max_response_chars,
-            "chat_max_response_tokens": self.chat_max_response_tokens,
-            "redis_session_storage_enabled_by_default": self.session_storage_enabled,
+            "chat_max_response_chars": CHAT_MAX_RESPONSE_CHARS,
+            "chat_max_response_tokens": CHAT_MAX_RESPONSE_TOKENS,
+            "chat_temperature": self.chat_temperature,
+            "chat_top_p": CHAT_TOP_P,
+            "chat_frequency_penalty": CHAT_FREQUENCY_PENALTY,
+            "chat_presence_penalty": CHAT_PRESENCE_PENALTY,
+            "chat_thinking_enabled": self.chat_thinking_enabled,
+            "chat_show_thinking_block": self.chat_show_thinking_block,
+            "redis_session_storage_enabled_by_default": SESSION_STORAGE_ENABLED,
             "authentication_enabled_by_default": self.auth_enabled,
         }
 

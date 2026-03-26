@@ -4,9 +4,8 @@ Backend-only RAG chatbot MVP built with FastAPI, PostgreSQL, Qdrant, Redis, and 
 
 ## TODO
 
-1. To set up endpoint to be able to change system prompt instead of having it hardcoded. This is to be accessed by using admin token
-2. Add a backend user message logger to monitor from misuse and jailbreaking
-3. To including metrics to compute service performance and usage
+1. Add a backend user message logger to monitor from misuse and jailbreaking
+2. Add metrics to compute service performance and usage
 
 ## What is implemented
 
@@ -19,7 +18,10 @@ Backend-only RAG chatbot MVP built with FastAPI, PostgreSQL, Qdrant, Redis, and 
 - `POST /chat`
 - `POST /chat/stream`
 - `DELETE /admin/reset`
+- `GET /admin/system-prompt`
+- `PUT /admin/system-prompt`
 - PostgreSQL storage for users, API keys, and documents
+- PostgreSQL storage for the editable system prompt
 - Qdrant storage for chunk embeddings and similarity search
 - Qdrant similarity search
 - Redis rate limiting, retrieval caching, embedding caching, and optional session storage
@@ -27,6 +29,7 @@ Backend-only RAG chatbot MVP built with FastAPI, PostgreSQL, Qdrant, Redis, and 
 - Optional reranking plugin for retrieval quality
 - Multipart ingestion for `txt`, `md`, `docx`, `csv`, and `xlsx`
 - JWT bearer authentication and hashed API keys
+- Admin-only system prompt management through JWT bearer auth
 - Chat guardrails for spam, quota, prompt-injection phrases, and output limits
 - Exact duplicate knowledge-base uploads are deduplicated by normalized content hash plus embedding profile
 - Grounded SNAIC chat behavior with a friendly, cheerful assistant style
@@ -71,7 +74,7 @@ Typical change flow:
 
 - If you change a model name or provider, update the matching env var in `backend/.env`, then update the default examples in `backend/.env.example`, `deploy/ecs/task-definition.json`, and the docs.
 - If you change a request or response field, update `backend/app/models/schemas.py` first, then adjust the services and any tests that depend on it.
-- If you change how NIM works, keep `NIM_BASE_URL`, `NIM_API_KEY`, `NIM_NO_THINK`, and the NIM embedding profile in sync across local env, ECS, and docs.
+- If you change how NIM works, keep `NIM_API_KEY` and the NIM embedding profile in sync across local env, ECS, and docs. Use `scripts/sync-provider-urls.ps1` to write the NIM base URL and rerank URL into `backend/.env` when you want explicit values there. For chat defaults, `DEFAULT_LLM_PROFILE` and `GENERATION_PROFILES` let you pick a short profile name like `nim_3super120` instead of repeating the provider/model pair.
 - If you add a new deployment secret, add it to `backend/.env.example`, `deploy/ecs/task-definition.json`, and the ECS README / deployment docs together.
 - If you change retrieval behavior, update `backend/app/services/retrieval.py`, `backend/app/services/rerank.py`, and the RAG pipeline docs together.
 

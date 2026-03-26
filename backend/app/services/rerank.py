@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 import httpx
 
+from app.core.defaults import RERANK_BASE_URL
 from app.core.config import Settings
 from app.models.schemas import RetrievedChunk
 
@@ -17,8 +18,7 @@ class RerankService:
             return chunks
         if len(chunks) < self._settings.rerank_min_candidates:
             return chunks
-        if not self._settings.rerank_invoke_url.strip():
-            return chunks
+        invoke_url = self._settings.rerank_invoke_url.strip() or self._default_invoke_url()
 
         payload = {
             "model": self._settings.rerank_model,
@@ -33,14 +33,14 @@ class RerankService:
         headers = {"Content-Type": "application/json"}
         if self._settings.nim_api_key:
             headers["Authorization"] = f"Bearer {self._settings.nim_api_key}"
-        elif self._requires_api_key():
+        elif self._requires_api_key(invoke_url):
             raise ValueError("NIM_API_KEY is required for the configured reranker")
 
         async with httpx.AsyncClient(
             timeout=30.0,
         ) as client:
             response = await client.post(
-                self._settings.rerank_invoke_url,
+                invoke_url,
                 headers=headers,
                 json=payload,
             )
@@ -102,6 +102,12 @@ class RerankService:
                     continue
         return 0.0
 
-    def _requires_api_key(self) -> bool:
-        host = urlparse(self._settings.rerank_invoke_url).netloc.lower()
+    def _requires_api_key(self, invoke_url: str) -> bool:
+        host = urlparse(invoke_url).netloc.lower()
         return "api.openai.com" in host
+
+    def _default_invoke_url(self) -> str:
+        model_path = self._settings.rerank_model.strip().lstrip("/")
+        if model_path.startswith("nvidia/"):
+            model_path = model_path[len("nvidia/") :]
+        return f"{RERANK_BASE_URL}/nvidia/{model_path}/reranking"

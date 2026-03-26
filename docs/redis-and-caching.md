@@ -24,9 +24,7 @@ Applied in:
 
 Config:
 
-- `CHAT_RATE_LIMIT_REQUESTS`
-- `CHAT_RATE_LIMIT_WINDOW_SECONDS`
-- `CHAT_DAILY_LIMIT_REQUESTS`
+- rate limiting uses code defaults
 
 Behavior:
 
@@ -44,7 +42,7 @@ Implemented in:
 
 Config:
 
-- `EMBEDDING_CACHE_TTL_SECONDS`
+- embedding cache TTL uses the code default
 
 Cache key includes:
 
@@ -60,7 +58,7 @@ Implemented in:
 
 Config:
 
-- `RETRIEVAL_CACHE_TTL_SECONDS`
+- retrieval cache TTL uses the code default
 
 Cache key includes:
 
@@ -78,16 +76,7 @@ Implemented in:
 
 Config:
 
-- `CHAT_MAX_MESSAGE_CHARS`
-- `CHAT_MAX_INPUT_TOKENS`
-- `CHAT_MAX_HISTORY_MESSAGES`
-- `CHAT_MAX_CONTEXT_CHARS`
-- `CHAT_MAX_CONTEXT_TOKENS`
-- `CHAT_MAX_CONTEXT_CHUNK_CHARS`
-- `CHAT_MIN_TOP_K`
-- `CHAT_MAX_TOP_K`
-- `CHAT_MAX_RESPONSE_CHARS`
-- `CHAT_MAX_RESPONSE_TOKENS`
+- chat retrieval and response limits use code defaults
 
 Behavior:
 
@@ -105,9 +94,7 @@ Implemented in:
 
 Config:
 
-- `SESSION_STORAGE_ENABLED`
-- `SESSION_TTL_SECONDS`
-- `MAX_SESSION_MESSAGES`
+- session storage and TTL use code defaults
 
 Behavior:
 

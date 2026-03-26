@@ -198,6 +198,17 @@ class DocumentRepository:
 
         return [DocumentRecord.model_validate(row) for row in rows]
 
+    async def delete_by_id(self, document_id: UUID) -> bool:
+        query = "DELETE FROM documents WHERE id = %(document_id)s"
+
+        async with self._pool.connection() as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute(query, {"document_id": document_id})
+                deleted = cursor.rowcount > 0
+            await connection.commit()
+
+        return deleted
+
     async def delete_all(self) -> dict[str, int]:
         document_count_query = "SELECT COUNT(*) AS count FROM documents"
         delete_query = "DELETE FROM documents"

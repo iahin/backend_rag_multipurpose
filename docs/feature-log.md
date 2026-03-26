@@ -264,9 +264,9 @@ NVIDIA NIM support added as an explicit provider alias.
 Added:
 
 - `nim` provider alias for generation and embeddings
-- `NIM_BASE_URL` and `NIM_API_KEY` env wiring
+- NIM API key env wiring
 - NIM embedding profile example for `nvidia/llama-nemotron-embed-1b-v2`
-- reranking path using `RERANK_INVOKE_URL`
+- reranking path derived from `RERANK_MODEL`
 - reranker reuses `NIM_API_KEY`
 
 Changed:
@@ -281,7 +281,7 @@ Reasoning-off controls and ingest compatibility fixes added.
 
 Added:
 
-- NIM-only `/no_think` system directive through `NIM_NO_THINK`
+- NIM reasoning control now follows the provider-specific chat thinking flag
 - greedy decoding defaults for NIM chat when reasoning is disabled
 
 Fixed:
@@ -297,7 +297,6 @@ Changed:
 
 - ECS task definition defaults moved from OpenAI to NVIDIA NIM
 - ECS now uses `NIM_API_KEY` for generation, embeddings, and reranking
-- ECS task definition includes `NIM_BASE_URL`, `NIM_NO_THINK`, and `RERANK_INVOKE_URL`
 - ECS docs now describe the NIM-based deployment path
 
 ## v0.5.9 - 2026-03-25
@@ -311,7 +310,110 @@ Changed:
 - prompt instructions now discourage overly expressive responses while keeping the assistant warm and approachable
 - prompt-builder tests and user-facing docs were updated to match the new tone
 
-## Current feature set - 2026-03-22
+## v0.5.10 - 2026-03-25
+
+Editable system prompt support added.
+
+Added:
+
+- PostgreSQL-backed storage for the active system prompt
+- admin-only `GET /admin/system-prompt`
+- admin-only `PUT /admin/system-prompt`
+- chat requests now load the stored system prompt on each run
+
+Changed:
+
+- the hardcoded prompt string was moved out of the chat builder and into the prompt store
+- startup seeds a default prompt if none exists yet
+
+## v0.5.11 - 2026-03-26
+
+Generation controls and thinking visibility toggles added.
+
+Added:
+
+- shared `.env` generation settings for:
+  - `CHAT_TEMPERATURE`
+  - `CHAT_TOP_P`
+  - `CHAT_FREQUENCY_PENALTY`
+  - `CHAT_PRESENCE_PENALTY`
+  - `CHAT_MAX_RESPONSE_TOKENS`
+- provider wiring for OpenAI, Gemini, Ollama, and NVIDIA NIM to read the shared generation settings
+- `CHAT_THINKING_ENABLED` as the single thinking switch across supported providers
+- `CHAT_SHOW_THINKING_BLOCK` to show or hide the visible `<thinking>` block in chat output
+- chat response shaping so thinking can be surfaced separately without forcing it into the final answer text
+
+Changed:
+
+- provider output normalization now strips or preserves `<think>` and `<thinking>` blocks based on the single thinking toggle
+- the chat service now formats completion text consistently before truncation and session storage
+- runbook and `.env.example` now document the new generation and thinking controls
+
+## v0.5.12 - 2026-03-26
+
+NIM URL sync moved into an explicit helper script.
+
+Changed:
+
+- `NIM_BASE_URL` is now written into `backend/.env` by `scripts/sync-provider-urls.ps1`
+- `RERANK_INVOKE_URL` is now written into `backend/.env` by `scripts/sync-provider-urls.ps1`
+- the sync script concatenates the rerank model into the NVIDIA rerank URL so the path stays aligned with `RERANK_MODEL`
+- runtime config now reads the explicit URL values from `.env` instead of deriving them in the settings model
+
+Behavior:
+
+- local developers can refresh the generated URL values with one script instead of editing multiple files
+- the app continues to use the same NIM and rerank endpoints at runtime after `.env` is rewritten
+
+## v0.5.13 - 2026-03-26
+
+Admin inspection and reingest controls added.
+
+Added:
+
+- admin-only document inspection endpoints for listing ingested documents and viewing a document as reconstructed text or raw chunks
+- `force_reingest` support for `POST /ingest/files` and `POST /ingest/text`
+- smoke-test helper script for login, ingest, and chat verification against the live API
+
+Changed:
+
+- duplicate document uploads can now be replaced intentionally instead of always being deduplicated
+- document inspection responses expose chunk-level metadata for debugging retrieval quality
+- the smoke test can print debug chunk payloads for both `/chat` and `/chat/stream`
+
+## v0.5.14 - 2026-03-26
+
+Retrieval, parser, and prompt cleanup hardening added.
+
+Fixed:
+
+- DOCX parsing now retains heading-only sections so important collaboration steps are not dropped during ingestion
+- NIM stream parsing now skips empty non-content events instead of raising `IndexError`
+- completion handling now tolerates `None` content values in provider responses
+- the assistant prompt now uses a single canonical source instead of being duplicated in SQL seed data
+- terminal decorative emoji are discouraged at the prompt level and scrubbed as a fallback
+
+Changed:
+
+- `/chat` and `/chat/stream` now share the same prepared retrieval context more consistently
+- chat output truncation prefers cleaner sentence endings instead of abrupt cuts
+- the smoke test script now exercises the same ingestion and retrieval path used by the API
+
+## v0.5.15 - 2026-03-26
+
+Default generation profile selection added.
+
+Added:
+
+- `DEFAULT_LLM_PROFILE` for selecting the active chat default by short alias
+- `GENERATION_PROFILES` for mapping named generation profiles to provider/model pairs
+
+Changed:
+
+- chat defaults now resolve through a named generation profile when one is configured
+- docs and example env files now show a short NIM profile such as `nim_3super120`
+
+## Current feature set - 2026-03-26
 
 The repository currently includes:
 
@@ -320,14 +422,18 @@ The repository currently includes:
 - PostgreSQL plus pgvector storage and retrieval
 - Redis-backed rate limiting, caching, and optional sessions
 - multi-provider chat generation
+- profile-based default LLM selection
 - explicit NVIDIA NIM alias support
 - optional reranking
+- admin document inspection endpoints for ingested content
+- forced reingest support for replacing duplicate uploads
 - chat guardrails for abuse, prompt injection, and output caps
 - Dockerized local runtime behind `nginx`
 - JWT auth, API keys, and admin user management
 - detailed operational documentation
 - ECS on Fargate deployment templates for a single-task setup
 - `k6`-based load-testing scripts with optional Docker runner
+- live smoke-test helpers for auth, ingest, and chat
 
 ## Notes
 

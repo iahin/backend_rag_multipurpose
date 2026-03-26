@@ -63,6 +63,7 @@ class ChunkRepository:
                     metadata=chunk.metadata,
                     embedding_provider=embedding_provider,
                     embedding_model=embedding_model,
+                    embedding_profile=embedding_profile,
                     created_at=created_at,
                 )
             )
@@ -106,8 +107,30 @@ class ChunkRepository:
                     metadata=dict(payload.get("metadata", {})),
                     embedding_provider=str(payload["embedding_provider"]),
                     embedding_model=str(payload["embedding_model"]),
+                    embedding_profile=str(payload.get("embedding_profile")) if payload.get("embedding_profile") is not None else None,
                     created_at=datetime.fromisoformat(str(payload["created_at"])),
                 )
             )
 
+        records.sort(key=lambda item: (item.chunk_index, item.created_at, str(item.id)))
         return records
+
+    async def delete_for_document(self, document_id: UUID, embedding_dimension: int) -> int:
+        collection_name = await self._qdrant.ensure_collection(embedding_dimension)
+        from qdrant_client.http import models
+
+        query_filter = models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="document_id",
+                    match=models.MatchValue(value=str(document_id)),
+                )
+            ]
+        )
+
+        await self._qdrant.client.delete(
+            collection_name=collection_name,
+            points_selector=query_filter,
+        )
+
+        return 1

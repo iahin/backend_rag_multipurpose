@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 
 from app.core.security import require_authenticated_user
+from app.core.defaults import CHAT_MAX_RESPONSE_CHARS
 from app.models.schemas import AuthenticatedUser, ChatRequest, ChatResponse
 from app.services.chat_service import ChatService
 
@@ -17,6 +18,7 @@ def _build_chat_service(request: Request) -> ChatService:
         qdrant_manager=request.app.state.qdrant,
         redis_manager=request.app.state.redis,
         provider_registry=request.app.state.providers,
+        system_prompt_service=request.app.state.prompt_service,
     )
 
 
@@ -44,6 +46,10 @@ def _sse(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data)}\n\n"
 
 
+def _thinking_enabled_for(settings) -> bool:
+    return bool(getattr(settings, "chat_thinking_enabled", False))
+
+
 @router.post("", response_model=ChatResponse)
 async def chat(
     request: Request,
@@ -60,12 +66,15 @@ async def chat(
 
     return ChatResponse(
         answer=result.answer,
+        thinking=result.thinking,
         citations=result.citations,
         provider=result.provider,
         model=result.model,
+        embedding_profile=result.embedding_profile,
         embedding_provider=result.embedding_provider,
         embedding_model=result.embedding_model,
         used_fallback=result.used_fallback,
+        retrieved_chunks=result.retrieved_chunks if payload.debug else [],
     )
 
 
@@ -84,15 +93,21 @@ async def chat_stream(
         _raise_chat_http_error(exc)
 
     async def event_generator() -> AsyncIterator[str]:
-        max_response_chars = request.app.state.settings.chat_max_response_chars
+        max_response_chars = CHAT_MAX_RESPONSE_CHARS
         yield _sse(
             "metadata",
             {
                 "provider": stream_state.provider,
                 "model": stream_state.model,
+                "embedding_profile": stream_state.embedding_profile,
                 "embedding_provider": stream_state.embedding_provider,
                 "embedding_model": stream_state.embedding_model,
                 "used_fallback": stream_state.used_fallback,
+                "retrieved_chunks": [
+                    chunk.model_dump(mode="json") for chunk in stream_state.retrieved_chunks
+                ]
+                if payload.debug
+                else [],
             },
         )
 
@@ -102,8 +117,10 @@ async def chat_stream(
                 "done",
                 {
                     "answer": stream_state.fallback_text,
+                    "thinking": None,
                     "citations": [],
                     "used_fallback": True,
+                    "retrieved_chunks": [],
                 },
             )
             return
@@ -124,14 +141,22 @@ async def chat_stream(
             if len(delta) > len(chunk):
                 break
 
-        final_text = "".join(answer_parts)
+        final_text = service.finalize_answer("".join(answer_parts))
         await service.finalize_stream(stream_state, final_text)
         yield _sse(
             "done",
             {
                 "answer": final_text,
+                "thinking": stream_state.thinking
+                if _thinking_enabled_for(request.app.state.settings)
+                else None,
                 "citations": [citation.model_dump(mode="json") for citation in stream_state.citations],
                 "used_fallback": False,
+                "retrieved_chunks": [
+                    chunk.model_dump(mode="json") for chunk in stream_state.retrieved_chunks
+                ]
+                if payload.debug
+                else [],
             },
         )
 

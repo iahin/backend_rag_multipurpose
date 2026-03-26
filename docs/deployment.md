@@ -93,8 +93,8 @@ If you run the app container outside Compose, make sure `POSTGRES_DSN`, `REDIS_U
 
 - `POSTGRES_DSN`
 - `REDIS_URL`
-- `DEFAULT_LLM_PROVIDER`
-- `DEFAULT_LLM_MODEL`
+- `DEFAULT_LLM_PROFILE`
+- `GENERATION_PROFILES`
 - `DEFAULT_EMBEDDING_PROFILE`
 - `EMBEDDING_PROFILES`
 - `AUTH_ENABLED`
@@ -102,37 +102,23 @@ If you run the app container outside Compose, make sure `POSTGRES_DSN`, `REDIS_U
 - `AUTH_BOOTSTRAP_ADMIN_USERNAME`
 - `AUTH_BOOTSTRAP_ADMIN_PASSWORD`
 
-Chat guardrail defaults can also be overridden through environment variables if you want to change the safety envelope without editing code:
-
-- `CHAT_RATE_LIMIT_REQUESTS`
-- `CHAT_RATE_LIMIT_WINDOW_SECONDS`
-- `CHAT_DAILY_LIMIT_REQUESTS`
-- `CHAT_MAX_MESSAGE_CHARS`
-- `CHAT_MAX_INPUT_TOKENS`
-- `CHAT_MAX_HISTORY_MESSAGES`
-- `CHAT_MAX_CONTEXT_CHARS`
-- `CHAT_MAX_CONTEXT_TOKENS`
-- `CHAT_MAX_CONTEXT_CHUNK_CHARS`
-- `CHAT_MIN_TOP_K`
-- `CHAT_MAX_TOP_K`
-- `CHAT_MAX_RESPONSE_CHARS`
-- `CHAT_MAX_RESPONSE_TOKENS`
+Chat guardrail defaults now use code values, so they are not expected in `backend/.env`.
 
 Current repository default embedding settings:
 
 - `DEFAULT_EMBEDDING_PROFILE=ollama_1536`
 - `EMBEDDING_PROFILES={"ollama_1536":{"provider":"ollama","model":"rjmalagon/gte-qwen2-1.5b-instruct-embed-f16","dimension":1536},"openai_small_1536":{"provider":"openai","model":"text-embedding-3-small","dimension":1536},"nim_nemotron_2048":{"provider":"nim","model":"nvidia/llama-nemotron-embed-1b-v2","dimension":2048}}`
-- `SIMILARITY_THRESHOLD=0.35`
+- `SIMILARITY_THRESHOLD` uses the code default
 
 Depending on provider usage:
 
 - `OPENAI_API_KEY`
 - `NIM_API_KEY`
-- `NIM_BASE_URL`
-- `NIM_NO_THINK`
+- `NIM_BASE_URL` defaults to the NVIDIA integrate endpoint in code and can be overridden with `scripts/sync-provider-urls.ps1`
+- `CHAT_THINKING_ENABLED`
 - `GEMINI_API_KEY`
 - `OLLAMA_BASE_URL`
-- `RERANK_INVOKE_URL`
+- `RERANK_INVOKE_URL` can be written into `backend/.env` with `scripts/sync-provider-urls.ps1`
 
 Authentication-related settings:
 

@@ -5,12 +5,18 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from app.core.security import require_admin_user
 from app.models.schemas import (
     AuthenticatedUser,
+    ChunkRecord,
+    IngestedDocumentDetails,
+    IngestedDocumentSummary,
     ResetResponse,
+    SystemPromptResponse,
+    SystemPromptUpdateRequest,
     UserCreateRequest,
     UserResponse,
     UserUpdateRequest,
 )
 from app.services.reset_service import ResetService
+from app.services.document_inspection_service import DocumentInspectionService
 
 router = APIRouter()
 
@@ -27,6 +33,18 @@ def _build_auth_service(request: Request):
     return request.app.state.auth_service
 
 
+def _build_prompt_service(request: Request):
+    return request.app.state.prompt_service
+
+
+def _build_document_inspection_service(request: Request) -> DocumentInspectionService:
+    return DocumentInspectionService(
+        settings=request.app.state.settings,
+        postgres_pool=request.app.state.postgres.pool,
+        qdrant_manager=request.app.state.qdrant,
+    )
+
+
 @router.delete("/reset", response_model=ResetResponse)
 async def reset_backend_state(
     request: Request,
@@ -34,6 +52,47 @@ async def reset_backend_state(
 ) -> ResetResponse:
     service = _build_reset_service(request)
     return await service.reset_all()
+
+
+@router.get("/documents", response_model=list[IngestedDocumentSummary])
+async def list_documents(
+    request: Request,
+    limit: int = 20,
+    _: AuthenticatedUser = Depends(require_admin_user),
+) -> list[IngestedDocumentSummary]:
+    return await _build_document_inspection_service(request).list_documents(limit=limit)
+
+
+@router.get("/documents/{document_id}", response_model=IngestedDocumentDetails)
+async def get_document(
+    request: Request,
+    document_id: UUID,
+    _: AuthenticatedUser = Depends(require_admin_user),
+) -> IngestedDocumentDetails:
+    try:
+        return await _build_document_inspection_service(request).get_document(document_id)
+    except ValueError as exc:
+        message = str(exc)
+        status_code = status.HTTP_400_BAD_REQUEST
+        if "not found" in message.lower():
+            status_code = status.HTTP_404_NOT_FOUND
+        raise HTTPException(status_code=status_code, detail=message) from exc
+
+
+@router.get("/documents/{document_id}/raw", response_model=list[ChunkRecord])
+async def get_document_raw_chunks(
+    request: Request,
+    document_id: UUID,
+    _: AuthenticatedUser = Depends(require_admin_user),
+) -> list[ChunkRecord]:
+    try:
+        return await _build_document_inspection_service(request).get_document_chunks(document_id)
+    except ValueError as exc:
+        message = str(exc)
+        status_code = status.HTTP_400_BAD_REQUEST
+        if "not found" in message.lower():
+            status_code = status.HTTP_404_NOT_FOUND
+        raise HTTPException(status_code=status_code, detail=message) from exc
 
 
 @router.post("/users", response_model=UserResponse)
@@ -44,6 +103,26 @@ async def create_user(
 ) -> UserResponse:
     try:
         return await _build_auth_service(request).create_user(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/system-prompt", response_model=SystemPromptResponse)
+async def get_system_prompt(
+    request: Request,
+    _: AuthenticatedUser = Depends(require_admin_user),
+) -> SystemPromptResponse:
+    return await _build_prompt_service(request).get_system_prompt()
+
+
+@router.put("/system-prompt", response_model=SystemPromptResponse)
+async def update_system_prompt(
+    request: Request,
+    payload: SystemPromptUpdateRequest,
+    _: AuthenticatedUser = Depends(require_admin_user),
+) -> SystemPromptResponse:
+    try:
+        return await _build_prompt_service(request).update_system_prompt(payload.system_prompt)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 

@@ -2,6 +2,8 @@
 
 This repository now includes a pragmatic single-task ECS on Fargate deployment path.
 
+Before using this guide, replace the repository-specific values from the examples with your own AWS account ID, region, cluster name, subnet IDs, security groups, ECR repositories, SSM parameter ARNs, and database password values.
+
 What it deploys in one ECS task:
 
 - `nginx` reverse proxy on port `80`
@@ -68,6 +70,8 @@ docker images | findstr rag-
 If you do not see `rag-backend`, `rag-nginx`, and `rag-postgres`, build them first with the commands above.
 
 Push the app images to ECR:
+
+Replace the example AWS account ID, region, and repository prefix in the commands below before running them.
 
 ```powershell
 aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 961341555117.dkr.ecr.ap-southeast-1.amazonaws.com
@@ -271,6 +275,7 @@ Replace:
 - `<AWS_ACCOUNT_ID>`
 - `<AWS_REGION>`
 - `<CHANGE_ME_DB_PASSWORD>`
+- example SSM parameter ARNs and any repository-specific image URIs
 
 Recommended production edits before registering:
 
@@ -343,6 +348,8 @@ Override defaults if needed:
 ```powershell
 .\scripts\redeploy-ecs.ps1 -Region ap-southeast-1 -AccountId 961341555117 -Cluster snaic_website_cluster -Service backend-rag-multipurpose
 ```
+
+The script defaults in `scripts/redeploy-ecs.ps1` are repository-specific examples. Override them for your own AWS environment instead of assuming they are portable defaults.
 
 If you already pushed the images and only need to recycle ECS:
 

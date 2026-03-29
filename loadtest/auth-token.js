@@ -2,8 +2,8 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 const baseUrl = __ENV.BASE_URL || 'http://localhost:9010';
-const username = __ENV.AUTH_USERNAME || 'admin';
-const password = __ENV.AUTH_PASSWORD || 'change-me-immediately';
+const username = __ENV.AUTH_USERNAME || '<change-me>';
+const password = __ENV.AUTH_PASSWORD || '<change-me>';
 
 export const options = {
   vus: 10,

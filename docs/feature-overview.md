@@ -1,0 +1,76 @@
+# Feature Overview
+
+This document summarizes the current implemented capabilities of the backend RAG platform in one place without the dated release history from the feature log.
+
+## API endpoints
+
+- `GET /health`
+- `POST /auth/token`
+- `GET /auth/me`
+- `POST /auth/api-keys`
+- `POST /ingest/text`
+- `POST /ingest/files`
+- `POST /chat`
+- `POST /chat/stream`
+- `DELETE /admin/reset`
+- `GET /admin/system-prompt`
+- `PUT /admin/system-prompt`
+
+## Core platform capabilities
+
+- PostgreSQL storage for users, API keys, and documents
+- PostgreSQL storage for the editable system prompt
+- Qdrant storage for chunk embeddings and similarity search
+- Redis rate limiting, retrieval caching, embedding caching, and optional session storage
+- Request-level generation provider and model selection
+- Optional reranking for retrieval quality
+- Multipart ingestion for `txt`, `md`, `docx`, `csv`, and `xlsx`
+- JWT bearer authentication and hashed API keys
+- Admin-only system prompt management through JWT bearer auth
+- Chat guardrails for spam, quota, prompt-injection phrases, and output limits
+- Exact duplicate knowledge-base uploads are deduplicated by normalized content hash plus embedding profile
+- Grounded chatbot behavior tuned for retrieved-context responses
+
+## Chat guardrails
+
+Default chat safety controls are enforced in code and can be overridden through `backend/.env` or the ECS task definition.
+
+- burst rate limit: `20` requests per `60` seconds per authenticated user
+- daily quota: `1000` chat requests per user
+- input size: `4000` characters and about `1000` tokens
+- retrieval scope: `top_k` is clamped to `3..8`
+- retrieval context: `8000` characters and about `2500` tokens per request
+- response size: `2000` characters and about `700` tokens
+- exact duplicate uploads are skipped when the content hash and embedding profile already exist
+- blocked phrases include:
+  - `ignore previous instructions`
+  - `dump all data`
+  - `show full document`
+  - `export everything`
+  - `print full source`
+  - `return exact text`
+  - `which document you used`
+  - `which sources did you use`
+
+The assistant is instructed to stay grounded to retrieved context. When context is missing, it falls back to a user-friendly low-confidence response instead of improvising.
+
+## Supported integration use cases
+
+- website chatbots
+- internal knowledge assistants
+- support and helpdesk assistants
+- document-based Q&A tools
+- domain-specific AI assistant backends
+
+## TODO
+
+- add a backend user message logger to monitor misuse and jailbreak attempts
+- add metrics to compute service performance and usage
+
+## Related documentation
+
+- [Architecture](architecture.md)
+- [RAG Pipeline](rag-pipeline.md)
+- [Providers and Models](providers-and-models.md)
+- [Development Notes](development-log.md)
+- [Feature Log](feature-log.md)

@@ -80,8 +80,8 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version="0.1.0",
         description=(
-            "Backend RAG API built by Isfaque Tuhin. "
-            "Portfolio: https://www.linkedin.com/in/iatuhin/ | "
+            "Backend RAG API built by Isfaque AL Kaderi Tuhin. "
+            "LinkedIn: https://www.linkedin.com/in/iatuhin/ | "
             "GitHub: https://github.com/iahin | "
             "Contact: shioktech@gmail.com"
         ),

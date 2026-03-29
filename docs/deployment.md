@@ -18,6 +18,16 @@ docker compose -f backend/docker-compose.yml up --build -d
 
 In local Docker mode, the Compose app service reads `backend/.env`. The `.env.example` file is only the starter template.
 
+Before starting the stack, replace the placeholder and environment-specific values in `backend/.env`:
+
+- `AUTH_BOOTSTRAP_ADMIN_USERNAME`
+- `AUTH_BOOTSTRAP_ADMIN_PASSWORD`
+- `AUTH_JWT_SECRET`
+- `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `NIM_API_KEY` depending on provider
+- `POSTGRES_DSN`, `REDIS_URL`, `QDRANT_URL`, and `OLLAMA_BASE_URL` if your services are not using the default local endpoints
+
+`backend/.env` is gitignored and should never be committed.
+
 If host port `9010` is unavailable, override it before starting:
 
 ```bash
@@ -209,6 +219,13 @@ If you want everything running inside ECS on Fargate:
 - use `backend/postgres/Dockerfile` so the database schema is baked into the image
 
 This deployment keeps `nginx`, the FastAPI app, PostgreSQL, and Redis in one ECS task and exposes port `80`.
+
+Before using the ECS assets, replace the environment-specific values in `deploy/ecs/task-definition.json`, `deploy/ecs/service-definition.json`, and the AWS setup commands:
+
+- database password placeholders such as `<CHANGE_ME_DB_PASSWORD>`
+- AWS account IDs, region names, subnet IDs, and security group IDs
+- ECR image URIs and repository prefixes
+- SSM parameter ARNs and secret names for auth and provider credentials
 
 For repeatable redeploys, use the PowerShell helper:
 

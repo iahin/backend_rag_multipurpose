@@ -1,118 +1,42 @@
 # Backend RAG Multipurpose
 
-Backend-only RAG chatbot MVP built with FastAPI, PostgreSQL, Qdrant, Redis, and multi-provider generation support across OpenAI, Gemini, Ollama, and a dedicated NVIDIA NIM alias for embeddings, generation, and reranking.
+A production-oriented RAG chatbot backend API built as a secure and highly customizable foundation for AI assistant solutions across websites, internal company tools, support platforms, and domain-specific business applications. It enables organizations to ingest documents, retrieve relevant knowledge, and generate grounded conversational responses through a scalable architecture designed for integration into real-world products. With support for authentication, semantic search, caching, rate limiting, configurable model selection, and multi-provider orchestration across OpenAI, Gemini, Ollama, and NVIDIA NIM, it is well suited for internal knowledge assistants, website chatbots, enterprise helpdesks, and other retrieval-driven AI experiences.
 
-## TODO
+## Feature overview
 
-1. Add a backend user message logger to monitor from misuse and jailbreaking
-2. Add metrics to compute service performance and usage
+- Secure authenticated API for document ingestion, semantic retrieval, and grounded chat
+- Multi-provider orchestration across OpenAI, Gemini, Ollama, and NVIDIA NIM
+- Built for website chatbots, internal assistants, support tools, and domain-specific AI products
+- Production-oriented backend features including caching, rate limiting, guardrails, streaming, and admin controls
 
-## What is implemented
+## Getting started
 
-- `GET /health`
-- `POST /auth/token`
-- `GET /auth/me`
-- `POST /auth/api-keys`
-- `POST /ingest/text`
-- `POST /ingest/files`
-- `POST /chat`
-- `POST /chat/stream`
-- `DELETE /admin/reset`
-- `GET /admin/system-prompt`
-- `PUT /admin/system-prompt`
-- PostgreSQL storage for users, API keys, and documents
-- PostgreSQL storage for the editable system prompt
-- Qdrant storage for chunk embeddings and similarity search
-- Qdrant similarity search
-- Redis rate limiting, retrieval caching, embedding caching, and optional session storage
-- Request-level generation provider/model selection
-- Optional reranking plugin for retrieval quality
-- Multipart ingestion for `txt`, `md`, `docx`, `csv`, and `xlsx`
-- JWT bearer authentication and hashed API keys
-- Admin-only system prompt management through JWT bearer auth
-- Chat guardrails for spam, quota, prompt-injection phrases, and output limits
-- Exact duplicate knowledge-base uploads are deduplicated by normalized content hash plus embedding profile
-- Grounded SNAIC chat behavior with a friendly, cheerful assistant style
+### Prerequisites and setup
 
-## Important MVP constraint
+- Python 3.11+
+- Docker Desktop with Docker Compose
+- a copy of `backend/.env.example` saved as `backend/.env`
+- provider credentials for the models you plan to use
+- for authenticated local use, change the bootstrap admin password and JWT secret before exposing the API outside local development
+- `backend/.env` is gitignored, so put real secrets there and never commit it
 
-The generation provider is switchable per request. The active generation and embedding profiles are stored in PostgreSQL and managed through the admin model-selection endpoints, while the selectable profile catalog lives in `backend/app/core/defaults.py`.
+Authentication defaults in `backend/.env.example`:
 
-If you want to point the app at NVIDIA NIM, use OpenAI-compatible endpoints with models like:
+- `AUTH_ENABLED=true`
+- `AUTH_BOOTSTRAP_ADMIN_USERNAME=admin`
+- `AUTH_BOOTSTRAP_ADMIN_PASSWORD=change-me-immediately`
+- `AUTH_JWT_SECRET=change-me-immediately`
 
-- `nvidia/llama-3.3-nemotron-super-49b-v1.5`
-- `nvidia/llama-nemotron-embed-1b-v2`
-- `nvidia/llama-nemotron-rerank-1b-v2`
+Replace these values in `backend/.env` before real use:
 
-Example profiles:
+- `AUTH_BOOTSTRAP_ADMIN_USERNAME`
+- `AUTH_BOOTSTRAP_ADMIN_PASSWORD`
+- `AUTH_JWT_SECRET`
+- `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `NIM_API_KEY` depending on provider
+- `POSTGRES_DSN` if you are not using the default local Docker database
+- `REDIS_URL`, `QDRANT_URL`, and `OLLAMA_BASE_URL` if your services run on different hosts
 
-- `ollama_1536`
-- `openai_small_1536`
-- `ollama_4096`
-- `nim_nemotron_2048`
-
-If you add a new dimension, the app will create the matching Qdrant collection on first use. Existing collections remain untouched.
-
-## Change Map
-
-Use this when you want to update the system without guessing which file owns what.
-
-- Code behavior: edit `backend/app/`
-- API shapes and response models: edit `backend/app/models/schemas.py`
-- Runtime config and defaults: edit `backend/app/core/config.py`
-- Provider wiring and API calls: edit `backend/app/providers/`
-- Embedding, retrieval, prompt building, reranking, and chat orchestration: edit `backend/app/services/`
-- Local Docker defaults: edit `backend/.env.example`
-- Local runtime values: edit `backend/.env`
-- ECS runtime defaults and secrets: edit `deploy/ecs/task-definition.json`
-- ECS deployment instructions: edit `deploy/ecs/README.md`
-- User-facing deployment guide: edit `docs/deployment.md`
-- Behavior history and release notes: edit `docs/feature-log.md`
-- Troubleshooting history: edit `docs/troubleshooting-log.md`
-
-Typical change flow:
-
-- If you change a model name or provider, update `backend/app/core/defaults.py`, then update the active startup defaults in `backend/.env` for local Docker and `deploy/ecs/task-definition.json` for ECS, plus the examples and docs.
-- If you change a request or response field, update `backend/app/models/schemas.py` first, then adjust the services and any tests that depend on it.
-- If you change how NIM works, keep `NIM_API_KEY` and the NIM embedding profile in sync across local env, ECS, and docs. Use `scripts/sync-provider-urls.ps1` to write the NIM base URL and rerank URL into `backend/.env` when you want explicit values there. Use `GET /admin/model-selection` and `PUT /admin/model-selection` to change the active generation or embedding profile without editing code.
-- If you add a new deployment secret, add it to `backend/.env.example`, `deploy/ecs/task-definition.json`, and the ECS README / deployment docs together.
-- If you change retrieval behavior, update `backend/app/services/retrieval.py`, `backend/app/services/rerank.py`, and the RAG pipeline docs together.
-
-## Chat guardrails
-
-Default chat safety controls are enforced in code and can be overridden through `backend/.env` or the ECS task definition:
-
-- burst rate limit: `20` requests per `60` seconds per authenticated user
-- daily quota: `1000` chat requests per user
-- input size: `4000` characters and about `1000` tokens
-- retrieval scope: `top_k` is clamped to `3..8`
-- retrieval context: `8000` characters and about `2500` tokens per request
-- response size: `2000` characters and about `700` tokens
-- exact duplicate uploads are skipped when the content hash and embedding profile already exist
-- blocked phrases include:
-  - `ignore previous instructions`
-  - `dump all data`
-  - `show full document`
-  - `export everything`
-- `print full source`
-- `return exact text`
-- `which document you used`
-- `which sources did you use`
-
-The assistant is instructed to stay friendly, cheerful, and grounded to retrieved context. When context is missing, it falls back to a natural, user-friendly "I don't have enough information to answer that confidently yet. If you'd like, I can help with a related question." response instead of improvising.
-
-## Ollama runtime mode
-
-Default behavior:
-
-- Ollama runs outside Docker on the host machine
-- the Dockerized app connects to it through `http://host.docker.internal:11434`
-
-If you run the app outside Docker too, the default `.env.example` keeps Ollama at:
-
-- `http://localhost:11434`
-
-## Quick start
+### Local setup with external model providers or host Ollama
 
 ```bash
 python -m venv .venv
@@ -122,20 +46,17 @@ copy backend\.env.example backend\.env
 docker compose -f backend/docker-compose.yml up --build -d
 ```
 
-If you need to override defaults for local non-Docker runs, copy `backend/.env.example` to `backend/.env`.
+This starts the local stack behind `nginx` and exposes the API on port `9010` by default.
 
-Authentication defaults in `backend/.env.example`:
+Use this mode when:
 
-- `AUTH_ENABLED=true`
-- `AUTH_BOOTSTRAP_ADMIN_USERNAME=admin`
-- `AUTH_BOOTSTRAP_ADMIN_PASSWORD=change-me-immediately`
-- `AUTH_JWT_SECRET=change-me-immediately`
+- you are using OpenAI, Gemini, or NVIDIA NIM
+- you want Ollama running on the host machine instead of inside Docker
 
-Change the bootstrap password and JWT secret before exposing the API outside local development.
+Default Ollama behavior in this setup:
 
-Default Docker-exposed API port:
-
-- `9010`
+- host Ollama listens on `http://localhost:11434`
+- the Dockerized app connects to it through `http://host.docker.internal:11434`
 
 If host port `9010` is blocked, set a different one before starting Compose:
 
@@ -144,12 +65,34 @@ set HOST_PROXY_PORT=8010
 docker compose -f backend/docker-compose.yml up --build -d
 ```
 
-Optional Ollama-in-Docker mode:
+### Local setup with Ollama in Docker
 
 ```bash
 copy backend\.env.example backend\.env
 docker compose -f backend/docker-compose.yml -f backend/docker-compose.ollama.yml up --build -d
 ```
+
+Use this mode when you want the entire local stack, including Ollama, running inside Docker.
+
+### ECS deployment
+
+For the ECS on Fargate path, use the dedicated deployment guide in [deploy/ecs/README.md](deploy/ecs/README.md).
+
+The current ECS setup:
+
+- runs `nginx`, FastAPI, PostgreSQL, Qdrant, and Redis in one ECS task
+- uses NVIDIA NIM as the default hosted provider in the task template
+- requires task-role, execution-role, CloudWatch, SSM, ECR, task-definition, and service-definition setup
+- is suitable for demos and single-task deployments, but not as a highly available stateful production architecture
+
+Before deploying to ECS, replace the environment-specific values in `deploy/ecs/task-definition.json` and related AWS assets:
+
+- database password placeholders such as `<CHANGE_ME_DB_PASSWORD>`
+- AWS account IDs, regions, cluster names, subnet IDs, and security group IDs
+- ECR image URLs and repository prefixes
+- SSM parameter ARNs and secret names for `NIM_API_KEY`, `AUTH_JWT_SECRET`, `AUTH_BOOTSTRAP_ADMIN_USERNAME`, and `AUTH_BOOTSTRAP_ADMIN_PASSWORD`
+
+Use [docs/deployment.md](docs/deployment.md) for the broader deployment notes and [deploy/ecs/README.md](deploy/ecs/README.md) for the step-by-step ECS instructions.
 
 ## Test
 
@@ -170,8 +113,9 @@ You can also override `-BaseUrl`, `-Username`, `-ChatMessage`, `-GenerationProvi
 
 - [Architecture](docs/architecture.md)
 - [API](docs/api.md)
+- [Feature Overview](docs/feature-overview.md)
 - [Feature Log](docs/feature-log.md)
-- [Development Log Pointer](docs/development-log.md)
+- [Development Notes](docs/development-log.md)
 - [Ingestion](docs/ingestion.md)
 - [RAG Pipeline](docs/rag-pipeline.md)
 - [Providers and Models](docs/providers-and-models.md)
@@ -182,8 +126,12 @@ You can also override `-BaseUrl`, `-Username`, `-ChatMessage`, `-GenerationProvi
 - [Load Testing](loadtest/README.md)
 - [Runbook](docs/runbook.md)
 
-# Ownership
+# Ownership and License
 
-Copyright (c) 2026 Isfaque Tuhin. Licensed under the Isfaque Tuhin Attribution License.
-Built by Isfaque Tuhin for portfolio use.
-Attribution links: https://www.linkedin.com/in/iatuhin/ | https://github.com/iahin | shioktech@gmail.com
+Copyright (c) 2026 Isfaque AL Kaderi Tuhin.
+
+Licensed under Apache License 2.0.
+
+You may use, modify, and distribute this project, including for commercial use, but attribution and license notice must be retained.
+
+Attribution links: Built by [Isfaque AL Kaderi Tuhin](https://github.com/iahin) | [LinkedIn](https://www.linkedin.com/in/iatuhin/) | [Email](mailto:shioktech@gmail.com)

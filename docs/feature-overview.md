@@ -115,3 +115,8 @@ When a client sends `session_id` on `/chat` or `/chat/stream`, the backend now e
 - [Providers and Models](providers-and-models.md)
 - [Development Notes](development-log.md)
 - [Feature Log](feature-log.md)
+
+## Known deployment gaps
+
+- HTTPS termination is not yet implemented in the checked-in ECS deployment assets
+- Custom DNS/domain routing is not yet implemented in the checked-in ECS deployment assets

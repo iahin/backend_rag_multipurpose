@@ -108,6 +108,7 @@ Create:
    - `/backend-rag/AUTH_JWT_SECRET`
    - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_USERNAME`
    - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD`
+   - `/backend-rag/POSTGRES_PASSWORD`
 
 ## CloudWatch setup
 
@@ -208,6 +209,7 @@ Create these parameters as `SecureString`:
 - `/backend-rag/AUTH_JWT_SECRET`
 - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_USERNAME`
 - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD`
+- `/backend-rag/POSTGRES_PASSWORD`
 
 ### Create the parameters in the AWS Console
 
@@ -227,6 +229,7 @@ Suggested values:
 - `/backend-rag/AUTH_JWT_SECRET`: a long random secret
 - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_USERNAME`: your admin username
 - `/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD`: your admin password
+- `/backend-rag/POSTGRES_PASSWORD`: the password used by both the app container and the postgres container
 
 You can generate the JWT secret outside ECS from your local PowerShell terminal or from AWS CloudShell with:
 
@@ -273,7 +276,8 @@ Example policy scope for the current NIM-based task:
         "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/NIM_API_KEY",
         "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/AUTH_JWT_SECRET",
         "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/AUTH_BOOTSTRAP_ADMIN_USERNAME",
-        "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD"
+        "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD",
+        "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/POSTGRES_PASSWORD"
       ]
     }
   ]
@@ -313,6 +317,7 @@ Important:
 - `GET /admin/model-selection` shows the active generation and embedding profiles.
 - `PUT /admin/model-selection` changes them without editing the task definition.
 - ECS will keep running the old task definition until you register a new revision and update the service.
+- The app container and postgres container both read `POSTGRES_PASSWORD` from SSM Parameter Store.
 
 Then register:
 
@@ -352,7 +357,7 @@ aws ecs update-service --cluster snaic_website_cluster --service backend-rag-mul
 If you want a repeatable local command that builds, pushes, registers, and updates the ECS service, use:
 
 ```powershell
-.\scripts\redeploy-ecs.ps1
+.\\scripts\\redeploy-ecs.ps1
 ```
 
 That script:
@@ -423,8 +428,21 @@ client
 - This design preserves the all-in-one task shape, but stateful containers on Fargate remain disposable.
 - Ollama is disabled in the ECS template because local models are not realistic in this deployment shape.
 - The ECS task template seeds NIM as the initial generation and embedding default, but the catalog still includes OpenAI and Ollama profiles in code if you switch them later through the admin API.
+- Chat activity and chat feedback are stored in the task-local PostgreSQL container, so replacing the task can clear admin monitoring history.
+- Feedback `full_chat_text` depends on clients reusing the same `session_id` across chat requests before submitting feedback.
 - If you want Fargate to be production-ready, the next step is: app + nginx on Fargate, PostgreSQL on RDS, Redis on ElastiCache.
 - Chat persona wording lives in `backend/app/services/prompt_builder.py`, so any tone change requires rebuilding and pushing the `rag-backend` image, then registering a new task definition revision and updating the ECS service.
+
+## Post-deploy verification
+
+After a new task revision is live, verify:
+
+1. `GET /health` returns `200`
+2. `POST /chat` returns `200`
+3. `POST /chat/stream` still streams
+4. `GET /admin/chat-activity` returns `200`
+5. `GET /admin/chat-feedback` returns `200`
+6. if your client sends `session_id`, confirm it is echoed by `/chat` or `/chat/stream` and that feedback for that session includes `full_chat_text`
 
 Related troubleshooting:
 

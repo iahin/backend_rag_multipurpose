@@ -21,6 +21,7 @@ $backendImage = "$ecrBase/rag-backend:latest"
 $nginxImage = "$ecrBase/rag-nginx:latest"
 $postgresImage = "$ecrBase/rag-postgres:latest"
 $taskDefinitionArn = $null
+$resolvedTaskDefinitionPath = $null
 
 function Get-EcsServiceState {
     param(
@@ -76,6 +77,54 @@ function Write-EcsServiceEvents {
     }
 }
 
+function Set-ContainerEnvironmentValue {
+    param(
+        $Container,
+        [string]$Name,
+        [string]$Value
+    )
+
+    $entry = $Container.environment | Where-Object { $_.name -eq $Name } | Select-Object -First 1
+    if (-not $entry) {
+        throw "Container '$($Container.name)' is missing environment variable '$Name' in the task definition."
+    }
+
+    $entry.value = $Value
+}
+
+function New-ResolvedTaskDefinition {
+    param(
+        [string]$TemplatePath,
+        [string]$BackendImageValue,
+        [string]$NginxImageValue,
+        [string]$PostgresImageValue
+    )
+
+    if (-not (Test-Path -LiteralPath $TemplatePath)) {
+        throw "Task definition template '$TemplatePath' was not found."
+    }
+
+    $taskDefinition = Get-Content -LiteralPath $TemplatePath -Raw | ConvertFrom-Json
+    $containers = @($taskDefinition.containerDefinitions)
+
+    $appContainer = $containers | Where-Object { $_.name -eq "app" } | Select-Object -First 1
+    $nginxContainer = $containers | Where-Object { $_.name -eq "nginx" } | Select-Object -First 1
+    $postgresContainer = $containers | Where-Object { $_.name -eq "postgres" } | Select-Object -First 1
+
+    if (-not $appContainer -or -not $nginxContainer -or -not $postgresContainer) {
+        throw "Task definition must include 'app', 'nginx', and 'postgres' containers."
+    }
+
+    $appContainer.image = $BackendImageValue
+    $nginxContainer.image = $NginxImageValue
+    $postgresContainer.image = $PostgresImageValue
+
+    $tempPath = Join-Path ([System.IO.Path]::GetTempPath()) ("ecs-task-definition-{0}.json" -f ([System.Guid]::NewGuid().ToString("N")))
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($tempPath, ($taskDefinition | ConvertTo-Json -Depth 100), $utf8NoBom)
+    return $tempPath
+}
+
 Write-Host "Using region: $Region"
 Write-Host "Using ECS cluster: $Cluster"
 Write-Host "Using ECS service: $Service"
@@ -103,8 +152,14 @@ if (-not $SkipPush) {
 }
 
 if (-not $SkipRegister) {
+    $resolvedTaskDefinitionPath = New-ResolvedTaskDefinition `
+        -TemplatePath $TaskDefinitionPath `
+        -BackendImageValue $backendImage `
+        -NginxImageValue $nginxImage `
+        -PostgresImageValue $postgresImage
+
     Write-Host "Registering new ECS task definition revision..."
-    $taskDefinitionArn = aws ecs register-task-definition --region $Region --cli-input-json "file://$TaskDefinitionPath" --query "taskDefinition.taskDefinitionArn" --output text
+    $taskDefinitionArn = aws ecs register-task-definition --region $Region --cli-input-json "file://$resolvedTaskDefinitionPath" --query "taskDefinition.taskDefinitionArn" --output text
     if (-not $taskDefinitionArn) {
         throw "Failed to register task definition."
     }
@@ -151,4 +206,8 @@ if (-not $SkipUpdate) {
     }
 
     Write-Host "ECS service updated successfully."
+}
+
+if ($resolvedTaskDefinitionPath -and (Test-Path -LiteralPath $resolvedTaskDefinitionPath)) {
+    Remove-Item -LiteralPath $resolvedTaskDefinitionPath -Force
 }

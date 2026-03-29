@@ -1,8 +1,9 @@
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import quote
 
 from pydantic import BaseModel, Field
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.defaults import (
@@ -44,9 +45,12 @@ class Settings(BaseSettings):
     app_port: int = Field(default=8000)
     log_level: str = Field(default="INFO")
 
-    postgres_dsn: str = Field(
-        default="postgresql://postgres:postgres@localhost:5432/ragdb"
-    )
+    postgres_dsn: str | None = Field(default=None)
+    postgres_host: str = Field(default="localhost")
+    postgres_port: int = Field(default=5432)
+    postgres_db: str = Field(default="ragdb")
+    postgres_user: str = Field(default="postgres")
+    postgres_password: str = Field(default="postgres")
     postgres_min_pool_size: int = Field(default=1)
     postgres_max_pool_size: int = Field(default=10)
 
@@ -137,6 +141,22 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return value.strip()
         return value
+
+    @model_validator(mode="after")
+    def resolve_postgres_dsn(self) -> "Settings":
+        dsn = (self.postgres_dsn or "").strip()
+        if dsn and "<CHANGE_ME_DB_PASSWORD>" not in dsn:
+            self.postgres_dsn = dsn
+            return self
+
+        encoded_user = quote(self.postgres_user, safe="")
+        encoded_password = quote(self.postgres_password, safe="")
+        encoded_db = quote(self.postgres_db, safe="")
+        self.postgres_dsn = (
+            f"postgresql://{encoded_user}:{encoded_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{encoded_db}"
+        )
+        return self
 
     def phase_one_assumptions(self) -> dict[str, object]:
         return {

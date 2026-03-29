@@ -70,7 +70,10 @@
         { "name": "APP_HOST", "value": "0.0.0.0" },
         { "name": "APP_PORT", "value": "8000" },
         { "name": "LOG_LEVEL", "value": "INFO" },
-        { "name": "POSTGRES_DSN", "value": "postgresql://postgres:<CHANGE_ME_DB_PASSWORD>@127.0.0.1:5432/ragdb" },
+        { "name": "POSTGRES_HOST", "value": "127.0.0.1" },
+        { "name": "POSTGRES_PORT", "value": "5432" },
+        { "name": "POSTGRES_DB", "value": "ragdb" },
+        { "name": "POSTGRES_USER", "value": "postgres" },
         { "name": "REDIS_URL", "value": "redis://127.0.0.1:6379/0" },
         { "name": "QDRANT_URL", "value": "http://127.0.0.1:6333" },
         { "name": "DEFAULT_GENERATION_PROVIDER", "value": "nim" },
@@ -101,6 +104,10 @@
         {
           "name": "AUTH_BOOTSTRAP_ADMIN_PASSWORD",
           "valueFrom": "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/AUTH_BOOTSTRAP_ADMIN_PASSWORD"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/POSTGRES_PASSWORD"
         }
       ],
       "dependsOn": [
@@ -144,8 +151,13 @@
       ],
       "environment": [
         { "name": "POSTGRES_DB", "value": "ragdb" },
-        { "name": "POSTGRES_USER", "value": "postgres" },
-        { "name": "POSTGRES_PASSWORD", "value": "<CHANGE_ME_DB_PASSWORD>" }
+        { "name": "POSTGRES_USER", "value": "postgres" }
+      ],
+      "secrets": [
+        {
+          "name": "POSTGRES_PASSWORD",
+          "valueFrom": "arn:aws:ssm:ap-southeast-1:961341555117:parameter/backend-rag/POSTGRES_PASSWORD"
+        }
       ],
       "mountPoints": [
         {

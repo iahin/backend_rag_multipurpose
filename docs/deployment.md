@@ -163,6 +163,13 @@ To review chatbot usage after deployment, use:
 - `GET /admin/chat-activity`
 - `GET /admin/chat-feedback`
 
+Important behavior notes after rollout:
+
+- chat activity and chat feedback are stored in PostgreSQL, so they persist only as long as the active database volume persists
+- in the single-task ECS shape, replacing the task can wipe these records because PostgreSQL is still task-local
+- `GET /admin/chat-feedback` can only return useful `full_chat_text` when the client reused a stable `session_id` across chat requests
+- `/chat` and `/chat/stream` only echo `session_id` when the client supplied it
+
 Supported chat-activity query params:
 
 - `limit`
@@ -205,6 +212,24 @@ Bootstrap admin note:
 
 - changing `AUTH_BOOTSTRAP_ADMIN_PASSWORD` in `backend/.env` does not overwrite an already-created admin user on an existing Postgres volume
 - if the old password still works and the new one does not, you are running against persisted database state rather than a fresh bootstrap
+
+## Post-deploy smoke checks
+
+After redeploying the backend image or replacing the task, verify:
+
+1. `GET /health` returns `200`
+2. admin login still works against the current persisted database state
+3. `POST /chat` returns `200`
+4. `POST /chat/stream` still streams successfully
+5. `GET /admin/chat-activity` returns `200`
+6. `GET /admin/chat-feedback` returns `200`
+7. if your client sends `session_id`, confirm `/chat` or `/chat/stream` echoes it and feedback records for that session produce `full_chat_text`
+
+If chat works but admin monitoring fails, the likely causes are:
+
+- the running container is still on an older image
+- the Postgres volume predates the current bootstrap logic
+- the client is not sending a stable `session_id`, so feedback text linkage is incomplete
 
 ## Authentication deployment notes
 
@@ -272,12 +297,24 @@ If you want everything running inside ECS on Fargate:
 
 This deployment keeps `nginx`, the FastAPI app, PostgreSQL, and Redis in one ECS task and exposes port `80`.
 
+Current limitation:
+
+- the checked-in ECS deployment assets do not yet implement HTTPS termination
+- the checked-in ECS deployment assets do not yet implement custom DNS such as `api.snaic.net`
+- if you need HTTPS and a stable domain, add an external AWS layer such as ALB plus ACM, or Global Accelerator plus ALB
+
 Before using the ECS assets, replace the environment-specific values in `deploy/ecs/task-definition.json`, `deploy/ecs/service-definition.json`, and the AWS setup commands:
 
-- database password placeholders such as `<CHANGE_ME_DB_PASSWORD>`
 - AWS account IDs, region names, subnet IDs, and security group IDs
 - ECR image URIs and repository prefixes
 - SSM parameter ARNs and secret names for auth and provider credentials
+
+For PostgreSQL in the ECS task definition:
+
+- the ECS task now reads `POSTGRES_PASSWORD` from SSM Parameter Store instead of committing the database password into the task definition
+- `deploy/ecs/task-definition.json` provides `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, and `POSTGRES_USER` to the app container
+- the app builds its effective Postgres DSN from those values plus the secret `POSTGRES_PASSWORD`
+- the redeploy script no longer rewrites the `POSTGRES_PASSWORD` secret reference and leaves the task definition as the source of truth
 
 Generate the JWT secret outside ECS first, typically from your local PowerShell terminal or AWS CloudShell, then store that generated value in SSM Parameter Store for `AUTH_JWT_SECRET`.
 

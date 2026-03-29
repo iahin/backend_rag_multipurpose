@@ -31,3 +31,9 @@ Use this when you want to update the system without guessing which file owns wha
 
 - [Feature Overview](feature-overview.md)
 - [Feature Log](feature-log.md)
+
+## Open deployment TODOs
+
+- add HTTPS termination for the ECS deployment path
+- add custom DNS support for the ECS deployment path, for example `api.snaic.net`
+- define the target AWS pattern for public ingress, such as ALB plus ACM or Global Accelerator plus ALB

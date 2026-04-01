@@ -129,10 +129,7 @@ You can also override `-BaseUrl`, `-Username`, `-ChatMessage`, `-GenerationProvi
 
 # Ownership and License
 
-Copyright (c) 2026 Isfaque AL Kaderi Tuhin.
+Built by [Isfaque AL Kaderi Tuhin](https://github.com/iahin) | [LinkedIn](https://www.linkedin.com/in/iatuhin/) | [Email](mailto:shioktech@gmail.com)
 
 Licensed under Apache License 2.0.
 
-You may use, modify, and distribute this project, including for commercial use, but attribution and license notice must be retained.
-
-Attribution links: Built by [Isfaque AL Kaderi Tuhin](https://github.com/iahin) | [LinkedIn](https://www.linkedin.com/in/iatuhin/) | [Email](mailto:shioktech@gmail.com)
